@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Rest-Control — Setup inicial</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gray-50 flex items-center justify-center">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-green-600 rounded-2xl mb-4">
+        <span class="text-white text-2xl">🍽</span>
+      </div>
+      <h1 class="text-xl font-semibold text-gray-900">Rest-Control</h1>
+      <p class="text-sm text-gray-500 mt-1">Configuración inicial del sistema</p>
+    </div>
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <div id="step-create">
+        <h2 class="text-base font-medium text-gray-800 mb-1">Crear administrador</h2>
+        <p class="text-xs text-gray-400 mb-5">Solo se usa una vez para el primer acceso.</p>
+        <div id="msg" class="hidden text-sm rounded-lg px-4 py-3 mb-4"></div>
+        <div class="space-y-3">
+          <div>
+            <label class="text-xs text-gray-500">Nombre completo</label>
+            <input id="nombre" value="Robinson Gaitan Rubiano" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"/>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">Correo</label>
+            <input id="email" value="robin_gaitan@hotmail.com" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"/>
+          </div>
+          <div>
+            <label class="text-xs text-gray-500">Contraseña</label>
+            <input id="password" type="password" value="restaurante123" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-green-500"/>
+          </div>
+          <button onclick="crearAdmin()" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors">
+            Crear administrador
+          </button>
+        </div>
+      </div>
+      <div id="step-done" class="hidden text-center py-4">
+        <div class="text-4xl mb-3">✅</div>
+        <h2 class="text-base font-semibold text-gray-900 mb-1">¡Administrador creado!</h2>
+        <p class="text-xs text-gray-500 mb-5">Ya puedes ingresar al sistema.</p>
+        <a href="login.html" class="block w-full bg-green-600 text-white text-sm font-medium py-2.5 rounded-lg text-center hover:bg-green-700">
+          Ir al login →
+        </a>
+        <p class="text-xs text-red-400 mt-4">⚠️ Elimina este archivo setup.html de GitHub después de usarlo.</p>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
