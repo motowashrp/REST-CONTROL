@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuth() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.rol;
+    }
+
+    function isAdmin() {
+      return isAuth() && userRole() == 'admin';
+    }
+
+    function isAdminOrGerente() {
+      return isAuth() && (userRole() == 'admin' || userRole() == 'gerente');
+    }
+
+    match /mesas/{id} {
+      allow read, write: if isAuth();
+    }
+
+    match /pedidos/{id} {
+      allow read, create, update: if isAuth();
+      allow delete: if isAdminOrGerente();
+    }
+
+    match /menu/{id} {
+      allow read: if isAuth();
+      allow write: if isAdminOrGerente();
+    }
+
+    match /inventario/{id} {
+      allow read: if isAuth();
+      allow write: if isAdminOrGerente();
+    }
+
+    match /usuarios/{id} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+  }
+}

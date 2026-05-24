@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rest-Control — Iniciar sesión</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { font-family: 'Segoe UI', system-ui, sans-serif; }</style>
+</head>
+<body class="min-h-screen bg-gray-50 flex items-center justify-center">
+
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center justify-center w-14 h-14 bg-green-600 rounded-2xl mb-4">
+        <span class="text-white text-2xl">🍽</span>
+      </div>
+      <h1 class="text-2xl font-semibold text-gray-900">Rest-Control</h1>
+      <p class="text-sm text-gray-500 mt-1">Sistema de control de restaurante</p>
+    </div>
+
+    <div class="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
+      <h2 class="text-base font-medium text-gray-800 mb-5">Iniciar sesión</h2>
+
+      <div id="error-msg" class="hidden bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-4"></div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1.5">Correo electrónico</label>
+          <input type="email" id="email" placeholder="correo@restaurante.com"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-600 mb-1.5">Contraseña</label>
+          <input type="password" id="password" placeholder="••••••••"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"/>
+        </div>
+        <button onclick="login()"
+          class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors">
+          Entrar
+        </button>
+      </div>
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-6">Rest-Control © 2025</p>
+  </div>
+
+  <script type="module">
+    import { auth } from './js/firebase-config.js';
+    import { signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    onAuthStateChanged(auth, user => {
+      if (user) window.location.href = 'index.html';
+    });
+
+    window.login = async () => {
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const errEl    = document.getElementById('error-msg');
+      errEl.classList.add('hidden');
+
+      if (!email || !password) {
+        errEl.textContent = 'Por favor completa todos los campos.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = 'index.html';
+      } catch (e) {
+        const msgs = {
+          'auth/user-not-found':   'Usuario no encontrado.',
+          'auth/wrong-password':   'Contraseña incorrecta.',
+          'auth/invalid-email':    'Correo inválido.',
+          'auth/too-many-requests':'Demasiados intentos. Intenta más tarde.',
+          'auth/invalid-credential': 'Correo o contraseña incorrectos.'
+        };
+        errEl.textContent = msgs[e.code] || 'Error al iniciar sesión.';
+        errEl.classList.remove('hidden');
+      }
+    };
+
+    document.getElementById('password').addEventListener('keydown', e => {
+      if (e.key === 'Enter') window.login();
+    });
+  </script>
+</body>
+</html>
