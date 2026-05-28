@@ -14,32 +14,51 @@
     .nav-item.active { background: #f0fdf4; color: #166534; font-weight: 500; }
     .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
     .stat-card { background: #f9fafb; border-radius: 12px; padding: 14px; }
+    /* Plano */
+    #plano-salon { position: relative; background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; width: 100%; height: 500px; overflow: hidden; }
+    .mesa-plano { position: absolute; width: 80px; height: 80px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; border: 2px solid; transition: box-shadow 0.2s; user-select: none; }
+    .mesa-plano:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .mesa-libre { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+    .mesa-ocupada { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+    .mesa-lista { background: #fef9c3; border-color: #ca8a04; color: #92400e; }
+    .mesa-drag { box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 100; opacity: 0.9; }
+    /* Modal */
+    #modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; align-items: center; justify-content: center; }
+    #modal-overlay.show { display: flex; }
+    #modal-box { background: white; border-radius: 20px; padding: 24px; width: 100%; max-width: 480px; margin: 16px; max-height: 90vh; overflow-y: auto; }
+    /* Panel lateral */
+    #panel-lateral { position: fixed; right: -400px; top: 0; height: 100vh; width: 380px; background: white; box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 40; transition: right 0.3s; overflow-y: auto; }
+    #panel-lateral.open { right: 0; }
+    /* Print */
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: fixed; left: 0; top: 0; width: 80mm; }
+    }
+    /* Responsive */
+    @media (max-width: 640px) {
+      aside { width: 0; overflow: hidden; }
+      main { margin-left: 0 !important; }
+      .mobile-menu-btn { display: flex !important; }
+      #plano-salon { height: 350px; }
+      .mesa-plano { width: 65px; height: 65px; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
 
   <!-- SIDEBAR -->
-  <aside class="w-52 bg-white border-r border-gray-100 flex flex-col py-4 fixed h-full z-10">
+  <aside id="sidebar" class="w-52 bg-white border-r border-gray-100 flex flex-col py-4 fixed h-full z-20 transition-all">
     <div class="px-4 pb-4 border-b border-gray-100 mb-2">
       <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white">🍽</div>
+        <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-sm">🍽</div>
         <div>
-          <div class="text-sm font-semibold text-gray-900">Rest-Control</div>
+          <div class="text-sm font-semibold text-gray-900" id="negocio-nombre-sidebar">Rest-Control</div>
           <div class="text-xs text-gray-400" id="user-role">...</div>
         </div>
       </div>
     </div>
-    <div class="px-3 flex-1 overflow-y-auto">
-      <p class="text-xs text-gray-400 px-1 pt-2 pb-1 uppercase tracking-wide">Operación</p>
-      <div class="nav-item active" onclick="showSection('mesas',this)">▦ Mesas</div>
-      <div class="nav-item" onclick="showSection('pedidos',this)">📋 Pedidos</div>
-      <div class="nav-item" onclick="showSection('menu',this)">🍴 Menú</div>
-      <div class="nav-item" onclick="showSection('caja',this)">💳 Caja</div>
-      <p class="text-xs text-gray-400 px-1 pt-4 pb-1 uppercase tracking-wide">Gestión</p>
-      <div class="nav-item" data-roles="admin,gerente" onclick="showSection('inventario',this)">📦 Inventario</div>
-      <div class="nav-item" data-roles="admin,gerente" onclick="showSection('reportes',this)">📊 Reportes</div>
-      <div class="nav-item" data-roles="admin" onclick="showSection('usuarios',this)">👥 Usuarios</div>
-    </div>
+    <div class="px-3 flex-1 overflow-y-auto" id="nav-menu"></div>
     <div class="px-4 pt-4 border-t border-gray-100">
       <div class="text-xs font-medium text-gray-800 truncate" id="user-name">...</div>
       <button id="btn-logout" class="text-xs text-gray-400 hover:text-red-500 mt-1 transition-colors">Cerrar sesión</button>
@@ -47,66 +66,52 @@
   </aside>
 
   <!-- MAIN -->
-  <main class="ml-52 flex-1 min-h-screen">
+  <main class="ml-52 flex-1 min-h-screen transition-all" id="main-content">
 
-    <!-- MESAS -->
-    <div id="sec-mesas" class="section active">
+    <!-- ═══════════════ PLANO DE MESAS ═══════════════ -->
+    <div id="sec-plano" class="section active">
       <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Mesas del restaurante</h1>
-        <button onclick="abrirModalPedido()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Nuevo pedido</button>
+        <h1 class="text-base font-semibold text-gray-900">Plano del restaurante</h1>
+        <div class="flex gap-2" id="plano-actions"></div>
       </div>
       <div class="p-6">
-        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-mesas"></div>
-        <p class="text-xs font-medium text-gray-500 mb-3">Mapa de mesas — clic para ocupar o liberar</p>
-        <div class="grid grid-cols-5 gap-3" id="grid-mesas">
-          <div class="col-span-5 text-sm text-gray-400">Cargando mesas...</div>
+        <!-- Leyenda -->
+        <div class="flex gap-4 mb-4 flex-wrap">
+          <div class="flex items-center gap-2 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-gray-200 border border-gray-400"></div> Libre</div>
+          <div class="flex items-center gap-2 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-green-200 border border-green-500"></div> Ocupada</div>
+          <div class="flex items-center gap-2 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-yellow-200 border border-yellow-500"></div> Lista para cobrar</div>
         </div>
+        <div id="plano-salon">
+          <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm" id="plano-loading">Cargando mesas...</div>
+        </div>
+        <div id="modo-edicion-info" class="hidden mt-3 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">✏️ Modo edición activo — arrastra las mesas para reposicionarlas. Haz clic en "Guardar posiciones" cuando termines.</div>
       </div>
     </div>
 
-    <!-- PEDIDOS -->
+    <!-- ═══════════════ PEDIDOS (MESERO) ═══════════════ -->
     <div id="sec-pedidos" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Pedidos activos</h1>
-        <button onclick="abrirModalPedido()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Nuevo pedido</button>
+      <div class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
+        <h1 class="text-base font-semibold text-gray-900">Mis pedidos activos</h1>
       </div>
-      <div class="p-6">
-        <div class="grid grid-cols-3 gap-4">
-          <div><p class="text-xs font-medium text-gray-500 mb-3 uppercase tracking-wide">En espera</p><div id="col-espera" class="space-y-3"></div></div>
-          <div><p class="text-xs font-medium text-amber-600 mb-3 uppercase tracking-wide">En cocina</p><div id="col-cocina" class="space-y-3"></div></div>
-          <div><p class="text-xs font-medium text-green-600 mb-3 uppercase tracking-wide">Listo para servir</p><div id="col-listo" class="space-y-3"></div></div>
-        </div>
+      <div class="p-4" id="lista-pedidos-mesero">
+        <div class="text-sm text-gray-400">Sin pedidos activos.</div>
       </div>
     </div>
 
-    <!-- MENÚ -->
-    <div id="sec-menu" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Carta del restaurante</h1>
-        <button onclick="abrirModalMenu()" data-roles="admin,gerente" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Agregar plato</button>
-      </div>
-      <div class="p-6">
-        <div class="flex gap-2 mb-5 flex-wrap" id="cats-menu"></div>
-        <div class="grid grid-cols-3 gap-3" id="grid-menu"><div class="text-sm text-gray-400">Cargando menú...</div></div>
-      </div>
-    </div>
-
-    <!-- CAJA -->
+    <!-- ═══════════════ CAJA ═══════════════ -->
     <div id="sec-caja" class="section">
       <div class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Caja y pagos</h1>
+        <h1 class="text-base font-semibold text-gray-900">Caja</h1>
       </div>
       <div class="p-6">
-        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-caja"></div>
-        <p class="text-xs font-medium text-gray-500 mb-3">Órdenes del día</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="stats-caja"></div>
         <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
           <table class="w-full text-sm">
             <thead><tr class="border-b border-gray-100 text-xs text-gray-500">
-              <th class="text-left px-4 py-3 font-medium">Orden</th>
-              <th class="text-left px-4 py-3 font-medium">Mesa</th>
-              <th class="text-left px-4 py-3 font-medium">Items</th>
-              <th class="text-right px-4 py-3 font-medium">Total</th>
-              <th class="text-center px-4 py-3 font-medium">Estado</th>
+              <th class="text-left px-4 py-3">Mesa</th>
+              <th class="text-left px-4 py-3">Items</th>
+              <th class="text-right px-4 py-3">Total</th>
+              <th class="text-center px-4 py-3">Estado</th>
               <th class="px-4 py-3"></th>
             </tr></thead>
             <tbody id="tabla-caja"></tbody>
@@ -115,71 +120,188 @@
       </div>
     </div>
 
-    <!-- INVENTARIO -->
-    <div id="sec-inventario" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Inventario</h1>
-        <button onclick="abrirModalInventario()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Agregar producto</button>
+    <!-- ═══════════════ MENÚ Y PRECIOS ═══════════════ -->
+    <div id="sec-menu" class="section">
+      <div class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
+        <h1 class="text-base font-semibold text-gray-900">Menú y precios</h1>
       </div>
       <div class="p-6">
-        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
-          <table class="w-full text-sm">
-            <thead><tr class="border-b border-gray-100 text-xs text-gray-500">
-              <th class="text-left px-4 py-3 font-medium">Producto</th>
-              <th class="text-left px-4 py-3 font-medium">Stock</th>
-              <th class="text-left px-4 py-3 font-medium">Unidad</th>
-              <th class="text-left px-4 py-3 font-medium">Nivel</th>
-              <th class="text-center px-4 py-3 font-medium">Estado</th>
-              <th class="px-4 py-3"></th>
-            </tr></thead>
-            <tbody id="tabla-inv"></tbody>
-          </table>
+        <!-- Pestañas -->
+        <div class="flex gap-2 mb-6 border-b border-gray-100">
+          <button onclick="showMenuTab('corriente',this)" class="menu-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Corriente del día</button>
+          <button onclick="showMenuTab('carta',this)" class="menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">A la carta</button>
+          <button onclick="showMenuTab('adicionales',this)" class="menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Adicionales</button>
+        </div>
+
+        <!-- Corriente -->
+        <div id="tab-corriente">
+          <div class="grid grid-cols-2 gap-4 mb-6">
+            <div class="stat-card">
+              <div class="text-xs text-gray-500 mb-1">Precio almuerzo corriente</div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-semibold text-gray-900" id="precio-corriente-display">$0</span>
+                <button onclick="editarPrecioConfig('corriente')" class="text-xs text-green-600 hover:underline">Editar</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="text-xs text-gray-500 mb-1">Precio sopa (aparte)</div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-semibold text-gray-900" id="precio-sopa-display">$0</span>
+                <button onclick="editarPrecioConfig('sopa')" class="text-xs text-green-600 hover:underline">Editar</button>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="text-xs text-gray-500 mb-1">Precio desechables (llevar)</div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl font-semibold text-gray-900" id="precio-desechables-display">$0</span>
+                <button onclick="editarPrecioConfig('desechables')" class="text-xs text-green-600 hover:underline">Editar</button>
+              </div>
+            </div>
+          </div>
+          <div id="componentes-corriente" class="space-y-4"></div>
+          <button onclick="abrirModalComponente()" class="mt-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Agregar componente</button>
+        </div>
+
+        <!-- Carta -->
+        <div id="tab-carta" class="hidden">
+          <button onclick="abrirModalCarta()" class="mb-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Agregar plato</button>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="lista-carta"></div>
+        </div>
+
+        <!-- Adicionales -->
+        <div id="tab-adicionales" class="hidden">
+          <button onclick="abrirModalAdicional()" class="mb-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Agregar adicional</button>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="lista-adicionales"></div>
         </div>
       </div>
     </div>
 
-    <!-- REPORTES -->
+    <!-- ═══════════════ GASTOS ═══════════════ -->
+    <div id="sec-gastos" class="section">
+      <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+        <h1 class="text-base font-semibold text-gray-900">Gastos</h1>
+        <button onclick="abrirModalGasto()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Registrar gasto</button>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="stats-gastos"></div>
+        <div class="flex gap-2 mb-4">
+          <select id="filtro-gastos-periodo" onchange="filtrarGastos()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <option value="hoy">Hoy</option>
+            <option value="mes">Este mes</option>
+          </select>
+          <select id="filtro-gastos-cat" onchange="filtrarGastos()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <option value="todos">Todas las categorías</option>
+            <option value="Ingredientes">Ingredientes</option>
+            <option value="Servicios">Servicios públicos</option>
+            <option value="Arriendo">Arriendo</option>
+            <option value="Nomina">Nómina</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+            <option value="Otro">Otro</option>
+          </select>
+        </div>
+        <div class="space-y-3" id="lista-gastos"></div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ REPORTES ═══════════════ -->
     <div id="sec-reportes" class="section">
       <div class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
         <h1 class="text-base font-semibold text-gray-900">Reportes</h1>
       </div>
       <div class="p-6">
-        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-reportes"></div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-white border border-gray-100 rounded-xl p-5">
-            <p class="text-xs font-medium text-gray-500 mb-4">Ventas por día (últimos 7 días)</p>
-            <div class="flex items-end gap-2 h-28" id="chart-ventas"></div>
+        <div class="flex gap-2 mb-6">
+          <button onclick="showReporteTab('diario',this)" class="reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Diario</button>
+          <button onclick="showReporteTab('mensual',this)" class="reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Mensual</button>
+        </div>
+        <div id="tab-reporte-diario">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="stats-diario"></div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white border border-gray-100 rounded-xl p-5">
+              <p class="text-xs font-medium text-gray-500 mb-4">Ventas por método de pago</p>
+              <div id="chart-pagos" class="space-y-3"></div>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-xl p-5">
+              <p class="text-xs font-medium text-gray-500 mb-4">Platos más vendidos hoy</p>
+              <div id="top-platos-diario" class="space-y-3"></div>
+            </div>
           </div>
-          <div class="bg-white border border-gray-100 rounded-xl p-5">
-            <p class="text-xs font-medium text-gray-500 mb-4">Platos más vendidos</p>
-            <div id="top-platos" class="space-y-3"></div>
+        </div>
+        <div id="tab-reporte-mensual" class="hidden">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="stats-mensual"></div>
+          <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4">
+            <p class="text-xs font-medium text-gray-500 mb-4">Ventas por día este mes</p>
+            <div class="flex items-end gap-1 h-32" id="chart-mensual"></div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white border border-gray-100 rounded-xl p-5">
+              <p class="text-xs font-medium text-gray-500 mb-3">Comparativo mes anterior</p>
+              <div id="comparativo-mes" class="space-y-3"></div>
+            </div>
+            <div class="bg-white border border-gray-100 rounded-xl p-5">
+              <p class="text-xs font-medium text-gray-500 mb-3">Platos más vendidos del mes</p>
+              <div id="top-platos-mensual" class="space-y-3"></div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- USUARIOS -->
+    <!-- ═══════════════ USUARIOS ═══════════════ -->
     <div id="sec-usuarios" class="section">
       <div class="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Usuarios del sistema</h1>
+        <h1 class="text-base font-semibold text-gray-900">Usuarios</h1>
         <button onclick="abrirModalUsuario()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Nuevo usuario</button>
       </div>
-      <div class="p-6">
-        <div class="space-y-3" id="lista-usuarios"><div class="text-sm text-gray-400">Cargando usuarios...</div></div>
+      <div class="p-6 space-y-3" id="lista-usuarios"></div>
+    </div>
+
+    <!-- ═══════════════ CONFIGURACIÓN ═══════════════ -->
+    <div id="sec-config" class="section">
+      <div class="bg-white border-b border-gray-100 px-6 py-4 sticky top-0 z-10">
+        <h1 class="text-base font-semibold text-gray-900">Configuración del negocio</h1>
+      </div>
+      <div class="p-6 max-w-lg">
+        <div class="bg-white border border-gray-100 rounded-xl p-6 space-y-4">
+          <div><label class="text-xs text-gray-500">Nombre del restaurante</label>
+            <input id="cfg-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Mi Restaurante"/></div>
+          <div><label class="text-xs text-gray-500">NIT</label>
+            <input id="cfg-nit" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="900.123.456-7"/></div>
+          <div><label class="text-xs text-gray-500">Teléfono</label>
+            <input id="cfg-telefono" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="601 234 5678"/></div>
+          <div><label class="text-xs text-gray-500">Dirección</label>
+            <input id="cfg-direccion" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Calle 123 # 45-67"/></div>
+          <div><label class="text-xs text-gray-500">Mensaje en el recibo</label>
+            <input id="cfg-mensaje" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="¡Gracias por su visita!"/></div>
+          <button onclick="guardarConfig()" class="w-full bg-green-600 text-white py-2.5 rounded-lg text-sm hover:bg-green-700">Guardar configuración</button>
+          <div id="cfg-ok" class="hidden text-xs text-green-600 text-center">✅ Guardado correctamente</div>
+        </div>
       </div>
     </div>
 
   </main>
 
-  <!-- MODAL -->
-  <div id="modal-overlay" class="hidden fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-    <div id="modal-box" class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 mx-4 max-h-screen overflow-y-auto"></div>
+  <!-- PANEL LATERAL (pedido de mesa) -->
+  <div id="panel-lateral">
+    <div class="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+      <h2 class="font-semibold text-gray-900" id="panel-titulo">Mesa</h2>
+      <button onclick="cerrarPanel()" class="text-gray-400 hover:text-gray-700 text-xl">✕</button>
+    </div>
+    <div id="panel-contenido" class="p-4"></div>
   </div>
+  <div id="panel-overlay" class="hidden fixed inset-0 z-30" onclick="cerrarPanel()"></div>
+
+  <!-- MODAL -->
+  <div id="modal-overlay">
+    <div id="modal-box"></div>
+  </div>
+
+  <!-- ÁREA DE IMPRESIÓN -->
+  <div id="print-area" class="hidden"></div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, onSnapshot, query, where, orderBy, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, onSnapshot, query, where, orderBy, serverTimestamp, getDocs, getDoc, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB63aYv7tTWvJoRXUD3A9R_m4OGNXPcUwg",
@@ -194,349 +316,1174 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    let currentUser = null;
-    let menuItems   = [];
+    // ── Estado global ─────────────────────────────
+    let currentUser    = null;
+    let currentProfile = null;
+    let configNegocio  = {};
+    let mesasData      = [];
+    let pedidosData    = [];
+    let cartaData      = [];
+    let adicionalesData= [];
+    let corrienteData  = {};
+    let gastosData     = [];
+    let modoEdicionPlano = false;
 
-    // ── Auth ──────────────────────────────────
-    onAuthStateChanged(auth, async user => {
-      if (!user) { window.location.href = 'login.html'; return; }
-      currentUser = user;
-
-      const q    = query(collection(db, 'usuarios'), where('uid', '==', user.uid));
-      const snap = await getDocs(q);
-      const profile = snap.empty ? { nombre: user.email, rol: 'admin' } : snap.docs[0].data();
-
-      document.getElementById('user-name').textContent = profile.nombre || user.email;
-      document.getElementById('user-role').textContent = profile.rol || 'usuario';
-
-      document.querySelectorAll('[data-roles]').forEach(el => {
-        const allowed = el.dataset.roles.split(',').map(r => r.trim());
-        if (!allowed.includes(profile.rol)) el.style.display = 'none';
-      });
-
-      initListeners();
-    });
-
-    document.getElementById('btn-logout').addEventListener('click', async () => {
-      await signOut(auth);
-      window.location.href = 'login.html';
-    });
-
-    // ── Navegación ────────────────────────────
-    window.showSection = (id, el) => {
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById('sec-' + id).classList.add('active');
-      if (el) el.classList.add('active');
-    };
-
-    // ── Listeners ─────────────────────────────
-    function initListeners() {
-      onSnapshot(collection(db, 'mesas'), snap => {
-        const mesas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderMesas(mesas);
-        renderStatsMesas(mesas);
-      });
-
-      onSnapshot(query(collection(db, 'pedidos'), orderBy('creadoEn', 'desc')), snap => {
-        const pedidos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderKanban(pedidos);
-        renderCaja(pedidos);
-        renderReportes(pedidos);
-      });
-
-      onSnapshot(collection(db, 'menu'), snap => {
-        menuItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderMenu(menuItems, 'todos');
-        renderCategorias(menuItems);
-      });
-
-      onSnapshot(collection(db, 'inventario'), snap => {
-        renderInventario(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-
-      onSnapshot(collection(db, 'usuarios'), snap => {
-        renderUsuarios(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      });
-    }
-
-    // ── Utilidades ────────────────────────────
+    // ── Utilidades ────────────────────────────────
     function formatCOP(v) {
-      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(v);
+      return new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v||0);
     }
     function timeAgo(ts) {
-      if (!ts) return '';
-      const d = ts.toDate ? ts.toDate() : new Date(ts);
-      const m = Math.floor((Date.now() - d) / 60000);
-      if (m < 1) return 'Ahora'; if (m < 60) return `${m} min`;
-      return `${Math.floor(m/60)}h ${m%60}m`;
+      if(!ts) return '';
+      const d=ts.toDate?ts.toDate():new Date(ts);
+      const m=Math.floor((Date.now()-d)/60000);
+      if(m<1) return 'Ahora'; if(m<60) return `${m}m`; return `${Math.floor(m/60)}h${m%60}m`;
+    }
+    function fechaHoy() {
+      return new Date().toISOString().split('T')[0];
+    }
+    function isSameDay(ts, dateStr) {
+      if(!ts) return false;
+      const d=ts.toDate?ts.toDate():new Date(ts);
+      return d.toISOString().split('T')[0]===dateStr;
+    }
+    function isSameMonth(ts, year, month) {
+      if(!ts) return false;
+      const d=ts.toDate?ts.toDate():new Date(ts);
+      return d.getFullYear()===year && d.getMonth()===month;
     }
 
-    // ── MESAS ─────────────────────────────────
-    function renderMesas(mesas) {
-      const grid = document.getElementById('grid-mesas');
-      if (!mesas.length) {
-        grid.innerHTML = `<div class="col-span-5 text-sm text-gray-400">Sin mesas. <button onclick="crearMesasSeed()" class="text-green-600 underline">Crear 10 mesas de ejemplo</button></div>`;
+    // ── AUTH ──────────────────────────────────────
+    onAuthStateChanged(auth, async user => {
+      if(!user){ window.location.href='login.html'; return; }
+      currentUser = user;
+      const q = query(collection(db,'usuarios'), where('uid','==',user.uid));
+      const snap = await getDocs(q);
+      currentProfile = snap.empty ? {nombre:user.email,rol:'mesero'} : snap.docs[0].data();
+      document.getElementById('user-name').textContent = currentProfile.nombre||user.email;
+      document.getElementById('user-role').textContent = currentProfile.rol||'usuario';
+      buildNav(currentProfile.rol);
+      initListeners();
+      cargarConfig();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async()=>{
+      await signOut(auth); window.location.href='login.html';
+    });
+
+    // ── NAVEGACIÓN POR ROL ────────────────────────
+    function buildNav(rol) {
+      const menus = {
+        admin:[
+          {id:'plano',icon:'▦',label:'Plano de mesas'},
+          {id:'menu',icon:'🍽',label:'Menú y precios'},
+          {id:'gastos',icon:'💸',label:'Gastos'},
+          {id:'reportes',icon:'📊',label:'Reportes'},
+          {id:'usuarios',icon:'👥',label:'Usuarios'},
+          {id:'config',icon:'⚙️',label:'Configuración'},
+        ],
+        cajero:[
+          {id:'plano',icon:'▦',label:'Plano de mesas'},
+          {id:'caja',icon:'💳',label:'Caja'},
+          {id:'gastos',icon:'💸',label:'Gastos'},
+          {id:'reportes',icon:'📊',label:'Reportes'},
+        ],
+        mesero:[
+          {id:'plano',icon:'▦',label:'Plano de mesas'},
+          {id:'pedidos',icon:'📋',label:'Mis pedidos'},
+        ]
+      };
+      const items = menus[rol]||menus.mesero;
+      document.getElementById('nav-menu').innerHTML = items.map((m,i)=>
+        `<div class="nav-item${i===0?' active':''}" onclick="showSection('${m.id}',this)" data-section="${m.id}">${m.icon} ${m.label}</div>`
+      ).join('');
+      // Acciones del plano según rol
+      const pa = document.getElementById('plano-actions');
+      if(rol==='admin'){
+        pa.innerHTML=`
+          <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50">✏️ Editar plano</button>
+          <button id="btn-guardar-pos" onclick="guardarPosiciones()" class="hidden text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">💾 Guardar posiciones</button>
+          <button onclick="abrirModalCrearMesa()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Mesa</button>`;
+      }
+    }
+
+    window.showSection = (id, el) => {
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      document.getElementById('sec-'+id)?.classList.add('active');
+      if(el) el.classList.add('active');
+      else document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
+    };
+
+    // ── LISTENERS FIRESTORE ───────────────────────
+    function initListeners() {
+      // Mesas
+      onSnapshot(collection(db,'mesas'), snap=>{
+        mesasData = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderPlano();
+        if(currentProfile.rol==='cajero') renderCaja();
+        if(currentProfile.rol==='mesero') renderPedidosMesero();
+      });
+
+      // Pedidos
+      onSnapshot(query(collection(db,'pedidos'),orderBy('creadoEn','desc')), snap=>{
+        pedidosData = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderPlano();
+        renderCaja();
+        renderReportes();
+        if(currentProfile.rol==='mesero') renderPedidosMesero();
+      });
+
+      // Carta
+      onSnapshot(collection(db,'menu_carta'), snap=>{
+        cartaData = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderCarta();
+      });
+
+      // Adicionales
+      onSnapshot(collection(db,'menu_adicionales'), snap=>{
+        adicionalesData = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderAdicionales();
+      });
+
+      // Corriente
+      onSnapshot(doc(db,'menu_corriente','hoy'), snap=>{
+        corrienteData = snap.exists()?snap.data():{componentes:{}};
+        renderCorriente();
+      });
+
+      // Gastos
+      onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')), snap=>{
+        gastosData = snap.docs.map(d=>({id:d.id,...d.data()}));
+        renderGastos();
+        renderReportes();
+      });
+
+      // Usuarios
+      onSnapshot(collection(db,'usuarios'), snap=>{
+        renderUsuarios(snap.docs.map(d=>({id:d.id,...d.data()})));
+      });
+    }
+
+    // ── CONFIGURACIÓN ─────────────────────────────
+    async function cargarConfig() {
+      const snap = await getDoc(doc(db,'config','negocio'));
+      configNegocio = snap.exists()?snap.data():{
+        nombre:'Rest-Control', nit:'', telefono:'', direccion:'',
+        mensaje:'¡Gracias por su visita!',
+        precioCorriente:0, precioSopa:0, precioDesechables:0
+      };
+      document.getElementById('negocio-nombre-sidebar').textContent = configNegocio.nombre||'Rest-Control';
+      document.getElementById('cfg-nombre').value  = configNegocio.nombre||'';
+      document.getElementById('cfg-nit').value     = configNegocio.nit||'';
+      document.getElementById('cfg-telefono').value= configNegocio.telefono||'';
+      document.getElementById('cfg-direccion').value=configNegocio.direccion||'';
+      document.getElementById('cfg-mensaje').value = configNegocio.mensaje||'';
+      actualizarPrecios();
+    }
+
+    function actualizarPrecios() {
+      document.getElementById('precio-corriente-display').textContent  = formatCOP(configNegocio.precioCorriente);
+      document.getElementById('precio-sopa-display').textContent       = formatCOP(configNegocio.precioSopa);
+      document.getElementById('precio-desechables-display').textContent= formatCOP(configNegocio.precioDesechables);
+    }
+
+    window.guardarConfig = async () => {
+      configNegocio.nombre    = document.getElementById('cfg-nombre').value.trim();
+      configNegocio.nit       = document.getElementById('cfg-nit').value.trim();
+      configNegocio.telefono  = document.getElementById('cfg-telefono').value.trim();
+      configNegocio.direccion = document.getElementById('cfg-direccion').value.trim();
+      configNegocio.mensaje   = document.getElementById('cfg-mensaje').value.trim();
+      await setDoc(doc(db,'config','negocio'), configNegocio);
+      document.getElementById('negocio-nombre-sidebar').textContent = configNegocio.nombre;
+      const ok = document.getElementById('cfg-ok');
+      ok.classList.remove('hidden');
+      setTimeout(()=>ok.classList.add('hidden'),2000);
+    };
+
+    window.editarPrecioConfig = (tipo) => {
+      const labels = {corriente:'Precio almuerzo corriente',sopa:'Precio sopa',desechables:'Precio desechables'};
+      const keys   = {corriente:'precioCorriente',sopa:'precioSopa',desechables:'precioDesechables'};
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Editar precio</h3>
+        <div class="space-y-3">
+          <div><label class="text-xs text-gray-500">${labels[tipo]}</label>
+            <input id="precio-input" type="number" value="${configNegocio[keys[tipo]]||0}"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="guardarPrecioConfig('${keys[tipo]}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+        </div>`);
+    };
+
+    window.guardarPrecioConfig = async (key) => {
+      const val = parseFloat(document.getElementById('precio-input').value)||0;
+      configNegocio[key] = val;
+      await setDoc(doc(db,'config','negocio'), configNegocio);
+      actualizarPrecios();
+      closeModal();
+    };
+
+    // ── PLANO DE MESAS ────────────────────────────
+    function renderPlano() {
+      const salon = document.getElementById('plano-salon');
+      document.getElementById('plano-loading').style.display='none';
+      // Limpiar mesas anteriores
+      salon.querySelectorAll('.mesa-plano').forEach(m=>m.remove());
+
+      if(!mesasData.length){
+        document.getElementById('plano-loading').style.display='flex';
+        document.getElementById('plano-loading').textContent='Sin mesas. El admin puede agregar mesas con el botón + Mesa';
         return;
       }
-      const estilos = { libre:'bg-white border-gray-200', ocupada:'bg-green-50 border-green-400 text-green-800', reservada:'bg-amber-50 border-amber-400 text-amber-800' };
-      grid.innerHTML = mesas.sort((a,b)=>a.numero-b.numero).map(m => `
-        <div onclick="accionMesa('${m.id}','${m.estado}')" class="border rounded-xl p-4 text-center cursor-pointer hover:shadow-sm transition-all ${estilos[m.estado]||estilos.libre}">
-          <div class="text-lg font-semibold">Mesa ${m.numero}</div>
-          <div class="text-xs mt-1 capitalize">${m.estado}</div>
-          <div class="text-xs mt-0.5 opacity-70">${m.estado==='ocupada'?`${m.personas||0} personas`:m.estado==='reservada'?(m.hora||''):'Disponible'}</div>
+
+      mesasData.forEach(mesa=>{
+        const pedidosMesa = pedidosData.filter(p=>p.mesaId===mesa.id && !['pagado','cancelado'].includes(p.estado));
+        const listos = pedidosMesa.length && pedidosMesa.every(p=>p.estado==='listo');
+        const estado = mesa.estado==='ocupada'?(listos?'lista':'ocupada'):'libre';
+
+        const el = document.createElement('div');
+        el.className = `mesa-plano mesa-${estado}`;
+        el.id = `mesa-${mesa.id}`;
+        el.style.left = (mesa.x||50)+'px';
+        el.style.top  = (mesa.y||50)+'px';
+        el.innerHTML = `
+          <div class="text-base font-bold">${mesa.numero}</div>
+          <div class="text-xs">${mesa.estado==='ocupada'?`👤${mesa.personas||0}`:'libre'}</div>
+          <div class="text-xs opacity-70">${pedidosMesa.length?pedidosMesa.length+' ped':''}</div>`;
+
+        el.addEventListener('click', ()=> handleClickMesa(mesa));
+
+        if(modoEdicionPlano && currentProfile.rol==='admin'){
+          makeDraggable(el, mesa.id);
+        }
+        salon.appendChild(el);
+      });
+    }
+
+    function handleClickMesa(mesa) {
+      if(modoEdicionPlano) return;
+      const rol = currentProfile.rol;
+      if(rol==='mesero'||rol==='admin'){
+        if(mesa.estado==='libre') abrirModalOcuparMesa(mesa);
+        else abrirPanelMesa(mesa);
+      } else if(rol==='cajero'){
+        if(mesa.estado==='ocupada') abrirPanelCobro(mesa);
+      }
+    }
+
+    // Drag & Drop plano
+    function makeDraggable(el, mesaId) {
+      let startX, startY, startLeft, startTop;
+      el.style.cursor='grab';
+      el.addEventListener('mousedown', e=>{
+        e.preventDefault();
+        startX=e.clientX; startY=e.clientY;
+        startLeft=parseInt(el.style.left)||0;
+        startTop=parseInt(el.style.top)||0;
+        el.classList.add('mesa-drag');
+        el.style.cursor='grabbing';
+        const onMove=ev=>{
+          const salon=document.getElementById('plano-salon');
+          const rect=salon.getBoundingClientRect();
+          let nx=startLeft+(ev.clientX-startX);
+          let ny=startTop+(ev.clientY-startY);
+          nx=Math.max(0,Math.min(nx,rect.width-85));
+          ny=Math.max(0,Math.min(ny,rect.height-85));
+          el.style.left=nx+'px'; el.style.top=ny+'px';
+        };
+        const onUp=()=>{
+          el.classList.remove('mesa-drag');
+          el.style.cursor='grab';
+          document.removeEventListener('mousemove',onMove);
+          document.removeEventListener('mouseup',onUp);
+        };
+        document.addEventListener('mousemove',onMove);
+        document.addEventListener('mouseup',onUp);
+      });
+      // Touch
+      el.addEventListener('touchstart',e=>{
+        const t=e.touches[0];
+        startX=t.clientX; startY=t.clientY;
+        startLeft=parseInt(el.style.left)||0;
+        startTop=parseInt(el.style.top)||0;
+        el.classList.add('mesa-drag');
+        const onMove=ev=>{
+          ev.preventDefault();
+          const tc=ev.touches[0];
+          const salon=document.getElementById('plano-salon');
+          const rect=salon.getBoundingClientRect();
+          let nx=startLeft+(tc.clientX-startX);
+          let ny=startTop+(tc.clientY-startY);
+          nx=Math.max(0,Math.min(nx,rect.width-85));
+          ny=Math.max(0,Math.min(ny,rect.height-85));
+          el.style.left=nx+'px'; el.style.top=ny+'px';
+        };
+        const onUp=()=>{
+          el.classList.remove('mesa-drag');
+          document.removeEventListener('touchmove',onMove);
+          document.removeEventListener('touchend',onUp);
+        };
+        document.addEventListener('touchmove',onMove,{passive:false});
+        document.addEventListener('touchend',onUp);
+      });
+    }
+
+    window.toggleModoEdicion = () => {
+      modoEdicionPlano = !modoEdicionPlano;
+      document.getElementById('btn-modo-edicion').textContent = modoEdicionPlano?'✕ Cancelar edición':'✏️ Editar plano';
+      document.getElementById('btn-guardar-pos').classList.toggle('hidden',!modoEdicionPlano);
+      document.getElementById('modo-edicion-info').classList.toggle('hidden',!modoEdicionPlano);
+      renderPlano();
+    };
+
+    window.guardarPosiciones = async () => {
+      const salon=document.getElementById('plano-salon');
+      const promises = mesasData.map(mesa=>{
+        const el=salon.querySelector(`#mesa-${mesa.id}`);
+        if(!el) return;
+        return updateDoc(doc(db,'mesas',mesa.id),{x:parseInt(el.style.left)||0, y:parseInt(el.style.top)||0});
+      });
+      await Promise.all(promises.filter(Boolean));
+      modoEdicionPlano=false;
+      document.getElementById('btn-modo-edicion').textContent='✏️ Editar plano';
+      document.getElementById('btn-guardar-pos').classList.add('hidden');
+      document.getElementById('modo-edicion-info').classList.add('hidden');
+      renderPlano();
+    };
+
+    window.abrirModalCrearMesa = () => {
+      const nextNum = mesasData.length ? Math.max(...mesasData.map(m=>m.numero||0))+1 : 1;
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Nueva mesa</h3>
+        <div class="space-y-3">
+          <div><label class="text-xs text-gray-500">Número de mesa</label>
+            <input id="nueva-mesa-num" type="number" value="${nextNum}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+          <div><label class="text-xs text-gray-500">Capacidad (personas)</label>
+            <input id="nueva-mesa-cap" type="number" value="4" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="crearMesa()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear</button>
+        </div>`);
+    };
+
+    window.crearMesa = async () => {
+      const num = parseInt(document.getElementById('nueva-mesa-num').value);
+      const cap = parseInt(document.getElementById('nueva-mesa-cap').value)||4;
+      if(!num){alert('Ingresa un número de mesa.');return;}
+      await addDoc(collection(db,'mesas'),{numero:num,capacidad:cap,estado:'libre',personas:0,x:50+(mesasData.length%5)*90,y:50+Math.floor(mesasData.length/5)*100});
+      closeModal();
+    };
+
+    // ── PANEL DE MESA (MESERO/ADMIN) ──────────────
+    window.abrirModalOcuparMesa = (mesa) => {
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Abrir Mesa ${mesa.numero}</h3>
+        <div class="space-y-3">
+          <div><label class="text-xs text-gray-500">Número de personas</label>
+            <input id="personas-input" type="number" min="1" max="${mesa.capacidad||4}" value="1"
+              class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="ocuparMesa('${mesa.id}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Abrir mesa</button>
+        </div>`);
+    };
+
+    window.ocuparMesa = async (mesaId) => {
+      const personas = parseInt(document.getElementById('personas-input').value)||1;
+      await updateDoc(doc(db,'mesas',mesaId),{estado:'ocupada',personas,ocupadaEn:serverTimestamp()});
+      closeModal();
+    };
+
+    window.abrirPanelMesa = (mesa) => {
+      const pedidosMesa = pedidosData.filter(p=>p.mesaId===mesa.id && !['pagado','cancelado'].includes(p.estado));
+      const total = pedidosMesa.reduce((s,p)=>s+(p.total||0),0);
+
+      document.getElementById('panel-titulo').textContent = `Mesa ${mesa.numero} — ${mesa.personas} persona${mesa.personas>1?'s':''}`;
+
+      let html = `
+        <div class="mb-4">
+          <div class="text-xs text-gray-500 mb-1">Total acumulado</div>
+          <div class="text-2xl font-semibold text-green-700">${formatCOP(total)}</div>
+        </div>`;
+
+      if(pedidosMesa.length){
+        html+=`<div class="mb-4"><div class="text-xs font-medium text-gray-500 mb-2">PEDIDOS</div>`;
+        pedidosMesa.forEach(p=>{
+          html+=`<div class="bg-gray-50 rounded-xl p-3 mb-2">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span>${p.tipo==='corriente'?'🍽 Corriente':'🍴 A la carta'} ${p.paraLlevar?'• Para llevar':''}</span>
+              <span class="badge ${p.estado==='listo'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-700'}">${p.estado}</span>
+            </div>`;
+          if(p.tipo==='corriente'){
+            html+=`<div class="text-sm font-medium">Almuerzo Corriente</div>`;
+            if(p.sopaAparte) html+=`<div class="text-xs text-gray-500">+ Sopa aparte</div>`;
+          } else {
+            (p.items||[]).forEach(i=>{ html+=`<div class="text-sm">${i.cantidad}x ${i.nombre}</div>`; });
+          }
+          if(p.adicionales?.length) p.adicionales.forEach(a=>{ html+=`<div class="text-xs text-gray-500">+ ${a.nombre} ${formatCOP(a.precio)}</div>`; });
+          if(p.observaciones) html+=`<div class="text-xs text-amber-600">📝 ${p.observaciones}</div>`;
+          html+=`<div class="text-sm font-medium text-green-700 mt-1">${formatCOP(p.total)}</div>`;
+          html+=`</div>`;
+        });
+        html+=`</div>`;
+      } else {
+        html+=`<div class="text-sm text-gray-400 mb-4">Sin pedidos aún.</div>`;
+      }
+
+      html+=`
+        <button onclick="abrirFormPedido('${mesa.id}',${mesa.numero})" class="w-full bg-green-600 text-white py-2.5 rounded-xl text-sm font-medium mb-2 hover:bg-green-700">+ Agregar pedido</button>`;
+
+      document.getElementById('panel-contenido').innerHTML = html;
+      abrirPanel();
+    };
+
+    // ── FORMULARIO DE PEDIDO ──────────────────────
+    window.abrirFormPedido = (mesaId, mesaNum) => {
+      cerrarPanel();
+      const cartaDisp = cartaData.filter(p=>p.activo);
+      const adicsDisp = adicionalesData.filter(a=>a.activo);
+      const comp = corrienteData.componentes||{};
+      const compKeys = Object.keys(comp);
+
+      let htmlComp = '';
+      compKeys.forEach(k=>{
+        const opciones = comp[k].filter(o=>o.activo);
+        if(!opciones.length) return;
+        htmlComp+=`<div>
+          <label class="text-xs font-medium text-gray-600">${k}</label>
+          <select id="comp-${k}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1">
+            ${opciones.map(o=>`<option value="${o.nombre}">${o.nombre}</option>`).join('')}
+          </select></div>`;
+      });
+
+      showModal(`
+        <h3 class="text-base font-semibold mb-1">Pedido — Mesa ${mesaNum}</h3>
+        <div class="space-y-3">
+          <!-- Tipo -->
+          <div>
+            <label class="text-xs font-medium text-gray-600">Tipo de almuerzo</label>
+            <div class="grid grid-cols-2 gap-2 mt-1">
+              <button onclick="selTipo('corriente',this)" id="tipo-corriente"
+                class="tipo-btn border-2 border-green-600 bg-green-50 text-green-800 rounded-lg py-2 text-sm font-medium">Corriente</button>
+              <button onclick="selTipo('carta',this)" id="tipo-carta"
+                class="tipo-btn border-2 border-gray-200 text-gray-600 rounded-lg py-2 text-sm">A la carta</button>
+            </div>
+          </div>
+
+          <!-- Corriente -->
+          <div id="form-corriente" class="space-y-2">
+            ${htmlComp||'<p class="text-xs text-gray-400">No hay componentes configurados para hoy.</p>'}
+            <div class="flex items-center gap-2 mt-1">
+              <input type="checkbox" id="sopa-aparte" class="accent-green-600"/>
+              <label class="text-sm text-gray-600">Agregar sopa aparte <span class="text-green-700 font-medium">(+${formatCOP(configNegocio.precioSopa)})</span></label>
+            </div>
+          </div>
+
+          <!-- Carta -->
+          <div id="form-carta" class="hidden space-y-2">
+            ${cartaDisp.map(p=>`
+              <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-gray-50 rounded px-1">
+                <input type="checkbox" value="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" class="carta-check accent-green-600"/>
+                <span class="text-sm flex-1">${p.nombre}</span>
+                <span class="text-sm font-medium text-green-700">${formatCOP(p.precio)}</span>
+              </label>`).join('')||'<p class="text-xs text-gray-400">Sin platos en carta.</p>'}
+          </div>
+
+          <!-- Adicionales -->
+          ${adicsDisp.length?`<div>
+            <label class="text-xs font-medium text-gray-600">Adicionales (opcional)</label>
+            <div class="mt-1 space-y-1 max-h-28 overflow-y-auto">
+              ${adicsDisp.map(a=>`
+                <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-gray-50 rounded px-1">
+                  <input type="checkbox" value="${a.id}" data-nombre="${a.nombre}" data-precio="${a.precio}" class="adic-check accent-green-600"/>
+                  <span class="text-sm flex-1">${a.nombre}</span>
+                  <span class="text-sm font-medium text-green-700">${formatCOP(a.precio)}</span>
+                </label>`).join('')}
+            </div></div>`:''}
+
+          <!-- Para llevar -->
+          <div class="flex items-center gap-2">
+            <input type="checkbox" id="para-llevar" class="accent-green-600"/>
+            <label class="text-sm text-gray-600">Para llevar <span class="text-green-700 font-medium">(+${formatCOP(configNegocio.precioDesechables)})</span></label>
+          </div>
+
+          <!-- Observaciones -->
+          <div>
+            <label class="text-xs font-medium text-gray-600">Observaciones</label>
+            <textarea id="observaciones" rows="2" placeholder="Sin cebolla, término 3/4..." class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 resize-none"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="confirmarPedido('${mesaId}',${mesaNum})" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Confirmar e imprimir</button>
+        </div>`);
+    };
+
+    window.selTipo = (tipo, el) => {
+      document.querySelectorAll('.tipo-btn').forEach(b=>{
+        b.className='tipo-btn border-2 border-gray-200 text-gray-600 rounded-lg py-2 text-sm';
+      });
+      el.className='tipo-btn border-2 border-green-600 bg-green-50 text-green-800 rounded-lg py-2 text-sm font-medium';
+      document.getElementById('form-corriente').classList.toggle('hidden', tipo==='carta');
+      document.getElementById('form-carta').classList.toggle('hidden', tipo==='corriente');
+    };
+
+    window.confirmarPedido = async (mesaId, mesaNum) => {
+      const tipo = document.getElementById('tipo-corriente').classList.contains('border-green-600')?'corriente':'carta';
+      const paraLlevar = document.getElementById('para-llevar').checked;
+      const sopaAparte = document.getElementById('sopa-aparte')?.checked||false;
+      const obs = document.getElementById('observaciones').value.trim();
+      const comp = corrienteData.componentes||{};
+
+      let items=[], total=0, selecciones={};
+
+      if(tipo==='corriente'){
+        total += configNegocio.precioCorriente||0;
+        Object.keys(comp).forEach(k=>{
+          const sel=document.getElementById('comp-'+k);
+          if(sel) selecciones[k]=sel.value;
+        });
+        if(sopaAparte) total+=configNegocio.precioSopa||0;
+      } else {
+        document.querySelectorAll('.carta-check:checked').forEach(c=>{
+          items.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1});
+          total+=parseFloat(c.dataset.precio);
+        });
+        if(!items.length){alert('Selecciona al menos un plato.');return;}
+      }
+
+      const adicionales=[];
+      document.querySelectorAll('.adic-check:checked').forEach(c=>{
+        adicionales.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio)});
+        total+=parseFloat(c.dataset.precio);
+      });
+      if(paraLlevar) total+=configNegocio.precioDesechables||0;
+
+      const pedido = {
+        mesaId, mesaNumero:mesaNum, tipo, items, selecciones,
+        adicionales, sopaAparte, paraLlevar, observaciones:obs,
+        total, estado:'espera', creadoEn:serverTimestamp(),
+        creadoPor:currentProfile.nombre||currentUser.email
+      };
+
+      await addDoc(collection(db,'pedidos'),pedido);
+      closeModal();
+      imprimirComanda({...pedido, mesaNumero:mesaNum});
+    };
+
+    // ── IMPRESIÓN COMANDA ─────────────────────────
+    function imprimirComanda(p) {
+      const hora = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      const fecha = new Date().toLocaleDateString('es-CO');
+      let detalle='';
+
+      if(p.tipo==='corriente'){
+        detalle+=`<div style="margin:4px 0">ALMUERZO CORRIENTE</div>`;
+        Object.entries(p.selecciones||{}).forEach(([k,v])=>{
+          detalle+=`<div style="font-size:11px;margin-left:8px">${k}: ${v}</div>`;
+        });
+        if(p.sopaAparte) detalle+=`<div style="font-size:11px;margin-left:8px">+ Sopa aparte</div>`;
+      } else {
+        (p.items||[]).forEach(i=>{ detalle+=`<div style="margin:4px 0">${i.cantidad}x ${i.nombre}</div>`; });
+      }
+      (p.adicionales||[]).forEach(a=>{ detalle+=`<div style="font-size:11px;margin-left:8px">+ ${a.nombre}</div>`; });
+      if(p.paraLlevar) detalle+=`<div style="font-size:11px;margin-left:8px">⚠️ PARA LLEVAR</div>`;
+      if(p.observaciones) detalle+=`<div style="font-size:11px;margin-left:8px;color:#92400e">📝 ${p.observaciones}</div>`;
+
+      document.getElementById('print-area').innerHTML=`
+        <div style="font-family:monospace;font-size:13px;width:80mm;padding:8px">
+          <div style="text-align:center;font-weight:bold;font-size:16px">MESA ${p.mesaNumero}</div>
+          <div style="text-align:center;font-size:11px">${fecha} ${hora}</div>
+          <div style="text-align:center;font-size:11px">${p.paraLlevar?'⚠️ PARA LLEVAR':'Para la mesa'}</div>
+          <div style="border-top:1px dashed #000;margin:6px 0"></div>
+          ${detalle}
+          <div style="border-top:1px dashed #000;margin:6px 0"></div>
+          <div style="font-size:11px">Atendido por: ${p.creadoPor}</div>
+        </div>`;
+      document.getElementById('print-area').classList.remove('hidden');
+      window.print();
+      document.getElementById('print-area').classList.add('hidden');
+    }
+
+    // ── PEDIDOS MESERO ────────────────────────────
+    function renderPedidosMesero() {
+      const activos = pedidosData.filter(p=>!['pagado','cancelado'].includes(p.estado) && p.creadoPor===currentProfile.nombre);
+      const el = document.getElementById('lista-pedidos-mesero');
+      if(!activos.length){ el.innerHTML='<div class="text-sm text-gray-400">Sin pedidos activos.</div>'; return; }
+      const clr={espera:'bg-gray-100 text-gray-600',listo:'bg-green-100 text-green-800'};
+      el.innerHTML=activos.map(p=>`
+        <div class="bg-white border border-gray-100 rounded-xl p-4 mb-3 shadow-sm">
+          <div class="flex justify-between mb-1">
+            <span class="font-medium">Mesa ${p.mesaNumero}</span>
+            <span class="badge ${clr[p.estado]||'bg-amber-100 text-amber-700'}">${p.estado}</span>
+          </div>
+          <div class="text-sm text-gray-600">${p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ')}</div>
+          <div class="text-sm font-medium text-green-700 mt-1">${formatCOP(p.total)}</div>
+          ${p.estado==='listo'?`<div class="mt-2 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">✅ Listo para servir</div>`:''}
         </div>`).join('');
     }
 
-    function renderStatsMesas(mesas) {
-      const ocupadas = mesas.filter(m=>m.estado==='ocupada').length;
-      const reservadas = mesas.filter(m=>m.estado==='reservada').length;
-      document.getElementById('stats-mesas').innerHTML = [
-        {label:'Ocupadas', value:ocupadas, sub:`de ${mesas.length}`},
-        {label:'Libres', value:mesas.length-ocupadas-reservadas},
-        {label:'Reservadas', value:reservadas},
-        {label:'Ocupación', value:mesas.length?Math.round((ocupadas/mesas.length)*100)+'%':'0%'}
-      ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-2xl font-semibold text-gray-900 mt-1">${s.value}</div>${s.sub?`<div class="text-xs text-gray-400 mt-0.5">${s.sub}</div>`:''}</div>`).join('');
-    }
+    // ── CAJA ──────────────────────────────────────
+    function renderCaja() {
+      const hoy = fechaHoy();
+      const pedidosHoy = pedidosData.filter(p=>isSameDay(p.creadoEn,hoy));
+      const pagados = pedidosHoy.filter(p=>p.estado==='pagado');
+      const pendientes = pedidosHoy.filter(p=>!['pagado','cancelado'].includes(p.estado));
+      const totalHoy = pagados.reduce((s,p)=>s+(p.total||0),0);
+      const efectivo = pagados.filter(p=>p.metodoPago==='efectivo').reduce((s,p)=>s+(p.total||0),0);
+      const digital  = pagados.filter(p=>['tarjeta','nequi'].includes(p.metodoPago)).reduce((s,p)=>s+(p.total||0),0);
 
-    window.accionMesa = async (id, estado) => {
-      const ref = doc(db, 'mesas', id);
-      if (estado==='libre') {
-        const p = prompt('¿Cuántas personas?');
-        if (!p||isNaN(p)) return;
-        await updateDoc(ref, {estado:'ocupada', personas:parseInt(p), ocupadaEn:serverTimestamp()});
-      } else if (estado==='ocupada') {
-        if (confirm('¿Liberar esta mesa?')) await updateDoc(ref, {estado:'libre', personas:0});
-      }
-    };
-
-    window.crearMesasSeed = async () => {
-      for (let i=1;i<=10;i++) await addDoc(collection(db,'mesas'),{numero:i,estado:'libre',personas:0});
-    };
-
-    // ── KANBAN ────────────────────────────────
-    function renderKanban(pedidos) {
-      const cols = {espera:[],cocina:[],listo:[]};
-      pedidos.filter(p=>!['pagado','cancelado'].includes(p.estado)).forEach(p=>{if(cols[p.estado])cols[p.estado].push(p);});
-      ['espera','cocina','listo'].forEach(e=>{
-        document.getElementById('col-'+e).innerHTML = cols[e].map(p=>`
-          <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
-            <div class="flex justify-between mb-2"><span class="font-medium text-sm">Mesa ${p.mesa}</span><span class="text-xs text-gray-400">${timeAgo(p.creadoEn)}</span></div>
-            <div class="text-xs text-gray-500 mb-3">${(p.items||[]).map(i=>`${i.cantidad}x ${i.nombre}`).join(', ')}</div>
-            ${p.nota?`<div class="text-xs text-amber-600 mb-2">📝 ${p.nota}</div>`:''}
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-green-700">${formatCOP(p.total||0)}</span>
-              <div class="flex gap-1">
-                ${e!=='listo'?`<button onclick="avanzarPedido('${p.id}','${e}')" class="text-xs bg-green-600 text-white px-2.5 py-1 rounded-lg">→ Avanzar</button>`:''}
-                ${e==='listo'?`<button onclick="cobrarPedido('${p.id}')" class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-lg">Cobrar</button>`:''}
-              </div>
-            </div>
-          </div>`).join('')||'<p class="text-xs text-gray-400 py-2">Sin pedidos</p>';
-      });
-    }
-
-    window.avanzarPedido = async (id,est) => {
-      const sig={espera:'cocina',cocina:'listo'};
-      if(sig[est]) await updateDoc(doc(db,'pedidos',id),{estado:sig[est]});
-    };
-
-    window.cobrarPedido = async (id) => {
-      const m = prompt('Método de pago:\n1 - Efectivo\n2 - Tarjeta\n3 - Nequi');
-      const ops={'1':'efectivo','2':'tarjeta','3':'nequi',efectivo:'efectivo',tarjeta:'tarjeta',nequi:'nequi'};
-      const pago = ops[m?.toLowerCase().trim()];
-      if(!pago) return;
-      await updateDoc(doc(db,'pedidos',id),{estado:'pagado',metodoPago:pago,pagadoEn:serverTimestamp()});
-    };
-
-    window.abrirModalPedido = async () => {
-      const snap = await getDocs(query(collection(db,'mesas'),where('estado','==','ocupada')));
-      const mesas = snap.docs.map(d=>({id:d.id,...d.data()}));
-      if(!mesas.length){alert('No hay mesas ocupadas. Primero ocupa una mesa.');return;}
-      const opsMesas = mesas.map(m=>`<option value="${m.numero}">Mesa ${m.numero} (${m.personas} personas)</option>`).join('');
-      const opsItems = menuItems.filter(i=>i.disponible).map(i=>`
-        <label class="flex items-center gap-2 text-sm py-1 cursor-pointer hover:bg-gray-50 px-1 rounded">
-          <input type="checkbox" value="${i.id}" data-nombre="${i.nombre}" data-precio="${i.precio}" class="item-check accent-green-600">
-          <span>${i.nombre}</span><span class="ml-auto text-green-700 font-medium">${formatCOP(i.precio)}</span>
-        </label>`).join('');
-      showModal(`
-        <h3 class="text-base font-semibold mb-4">Nuevo pedido</h3>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Mesa</label>
-            <select id="m-mesa" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1">${opsMesas}</select></div>
-          <div><label class="text-xs text-gray-500">Platos</label>
-            <div class="mt-1 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-2">${opsItems||'<p class="text-sm text-gray-400 p-2">No hay platos. Agrega primero en Menú.</p>'}</div></div>
-          <div><label class="text-xs text-gray-500">Nota (opcional)</label>
-            <input id="m-nota" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: sin cebolla..."></div>
-        </div>
-        <div class="flex justify-end gap-2 mt-5">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="guardarPedido()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear pedido</button>
-        </div>`);
-    };
-
-    window.guardarPedido = async () => {
-      const mesa = document.getElementById('m-mesa').value;
-      const nota = document.getElementById('m-nota').value;
-      const checks = [...document.querySelectorAll('.item-check:checked')];
-      if(!checks.length){alert('Selecciona al menos un plato.');return;}
-      const items = checks.map(c=>({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1}));
-      await addDoc(collection(db,'pedidos'),{mesa,items,total:items.reduce((s,i)=>s+i.precio,0),nota,estado:'espera',creadoEn:serverTimestamp(),creadoPor:currentUser.uid});
-      closeModal();
-      showSection('pedidos',document.querySelectorAll('.nav-item')[1]);
-    };
-
-    // ── MENÚ ──────────────────────────────────
-    function renderCategorias(items) {
-      const cats = ['todos',...new Set(items.map(i=>i.categoria).filter(Boolean))];
-      document.getElementById('cats-menu').innerHTML = cats.map(c=>
-        `<button onclick="filterMenu('${c}',this)" class="${c==='todos'?'bg-green-600 text-white':'border border-gray-200 text-gray-600 hover:bg-green-50'} text-xs px-4 py-1.5 rounded-full transition-colors">${c}</button>`
-      ).join('');
-    }
-
-    window.filterMenu = (cat,el) => {
-      document.querySelectorAll('#cats-menu button').forEach(b=>{ b.className='border border-gray-200 text-gray-600 hover:bg-green-50 text-xs px-4 py-1.5 rounded-full transition-colors'; });
-      el.className='bg-green-600 text-white text-xs px-4 py-1.5 rounded-full transition-colors';
-      renderMenu(menuItems,cat);
-    };
-
-    function renderMenu(items,cat='todos') {
-      const f = cat==='todos'?items:items.filter(i=>i.categoria===cat);
-      document.getElementById('grid-menu').innerHTML = f.map(i=>`
-        <div class="bg-white border border-gray-100 rounded-xl p-4 hover:shadow-sm transition-shadow">
-          <div class="flex justify-between items-start mb-1">
-            <div class="font-medium text-sm">${i.nombre}</div>
-            <span class="badge ${i.disponible?'bg-green-100 text-green-800':'bg-red-100 text-red-700'}">${i.disponible?'disponible':'agotado'}</span>
-          </div>
-          <div class="text-xs text-gray-500 mb-3">${i.descripcion||''}</div>
-          <div class="flex justify-between items-center">
-            <span class="text-sm font-semibold text-green-700">${formatCOP(i.precio)}</span>
-            <button onclick="toggleDisponible('${i.id}',${i.disponible})" class="text-xs text-gray-400 hover:text-gray-700">${i.disponible?'Marcar agotado':'Disponible'}</button>
-          </div>
-        </div>`).join('')||'<p class="text-sm text-gray-400 col-span-3">Sin platos en esta categoría.</p>';
-    }
-
-    window.toggleDisponible = async (id,actual) => { await updateDoc(doc(db,'menu',id),{disponible:!actual}); };
-
-    window.abrirModalMenu = () => {
-      showModal(`
-        <h3 class="text-base font-semibold mb-4">Agregar plato al menú</h3>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Nombre *</label><input id="mn-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Bandeja Paisa"></div>
-          <div><label class="text-xs text-gray-500">Descripción</label><input id="mn-desc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ingredientes principales"></div>
-          <div><label class="text-xs text-gray-500">Categoría</label><input id="mn-cat" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="entradas / principales / bebidas / postres"></div>
-          <div><label class="text-xs text-gray-500">Precio (COP) *</label><input id="mn-precio" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="38000"></div>
-        </div>
-        <div class="flex justify-end gap-2 mt-5">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="guardarMenu()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
-        </div>`);
-    };
-
-    window.guardarMenu = async () => {
-      const nombre=document.getElementById('mn-nombre').value.trim();
-      const precio=parseFloat(document.getElementById('mn-precio').value);
-      if(!nombre||!precio){alert('Nombre y precio son obligatorios.');return;}
-      await addDoc(collection(db,'menu'),{nombre,descripcion:document.getElementById('mn-desc').value,categoria:document.getElementById('mn-cat').value,precio,disponible:true,creadoEn:serverTimestamp()});
-      closeModal();
-    };
-
-    // ── CAJA ──────────────────────────────────
-    function renderCaja(pedidos) {
-      const pagados=pedidos.filter(p=>p.estado==='pagado');
-      const pend=pedidos.filter(p=>!['pagado','cancelado'].includes(p.estado));
-      const total=pagados.reduce((s,p)=>s+(p.total||0),0);
-      const efec=pagados.filter(p=>p.metodoPago==='efectivo').reduce((s,p)=>s+(p.total||0),0);
-      const dig=pagados.filter(p=>['tarjeta','nequi'].includes(p.metodoPago)).reduce((s,p)=>s+(p.total||0),0);
       document.getElementById('stats-caja').innerHTML=[
-        {label:'Total hoy',value:formatCOP(total)},{label:'Efectivo',value:formatCOP(efec)},
-        {label:'Tarjeta/Nequi',value:formatCOP(dig)},{label:'Pendientes',value:pend.length}
+        {label:'Total hoy',value:formatCOP(totalHoy)},
+        {label:'Efectivo',value:formatCOP(efectivo)},
+        {label:'Tarjeta/Nequi',value:formatCOP(digital)},
+        {label:'Pendientes',value:pendientes.length}
       ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold text-gray-900 mt-1">${s.value}</div></div>`).join('');
-      const clr={espera:'bg-gray-100 text-gray-600',cocina:'bg-amber-100 text-amber-700',listo:'bg-blue-100 text-blue-700',pagado:'bg-green-100 text-green-700',cancelado:'bg-red-100 text-red-600'};
-      document.getElementById('tabla-caja').innerHTML=pedidos.slice(0,30).map(p=>`
-        <tr class="border-b border-gray-50 hover:bg-gray-50">
-          <td class="px-4 py-3 text-xs text-gray-400 font-mono">#${p.id.slice(-5).toUpperCase()}</td>
-          <td class="px-4 py-3 text-sm">Mesa ${p.mesa}</td>
-          <td class="px-4 py-3 text-xs text-gray-500">${(p.items||[]).map(i=>`${i.cantidad}x ${i.nombre}`).join(', ')}</td>
-          <td class="px-4 py-3 text-sm font-medium text-right">${formatCOP(p.total||0)}</td>
-          <td class="px-4 py-3 text-center"><span class="badge ${clr[p.estado]||''}">${p.estado}</span></td>
-          <td class="px-4 py-3 text-right text-xs">${!['pagado','cancelado'].includes(p.estado)?`<button onclick="cobrarPedido('${p.id}')" class="text-green-600 hover:underline">Cobrar</button>`:''}</td>
-        </tr>`).join('');
-    }
 
-    // ── INVENTARIO ────────────────────────────
-    function renderInventario(inv) {
-      document.getElementById('tabla-inv').innerHTML=inv.map(i=>{
-        const pct=Math.min(100,Math.round((i.stock/(i.stockMax||1))*100));
-        const clr=pct>50?'bg-green-400':pct>20?'bg-amber-400':'bg-red-400';
-        const bdg=pct>50?'bg-green-100 text-green-800':pct>20?'bg-amber-100 text-amber-700':'bg-red-100 text-red-700';
-        return `<tr class="border-b border-gray-50 hover:bg-gray-50">
-          <td class="px-4 py-3 text-sm font-medium">${i.nombre}</td>
-          <td class="px-4 py-3 text-sm">${i.stock}</td>
-          <td class="px-4 py-3 text-xs text-gray-500">${i.unidad||''}</td>
-          <td class="px-4 py-3 w-32"><div class="h-1.5 bg-gray-100 rounded-full"><div class="${clr} h-1.5 rounded-full" style="width:${pct}%"></div></div></td>
-          <td class="px-4 py-3 text-center"><span class="badge ${bdg}">${pct>50?'ok':pct>20?'bajo':'crítico'}</span></td>
-          <td class="px-4 py-3 text-right"><button onclick="editarStock('${i.id}',${i.stock})" class="text-xs text-gray-400 hover:text-gray-700">Editar</button></td>
+      const clr={espera:'bg-gray-100 text-gray-600',listo:'bg-green-100 text-green-800',pagado:'bg-blue-100 text-blue-700'};
+      const mesasOcupadas = [...new Set(pendientes.map(p=>p.mesaId))];
+
+      document.getElementById('tabla-caja').innerHTML = mesasOcupadas.map(mesaId=>{
+        const pedMesa = pendientes.filter(p=>p.mesaId===mesaId);
+        const mesa = mesasData.find(m=>m.id===mesaId);
+        const totalMesa = pedMesa.reduce((s,p)=>s+(p.total||0),0);
+        return `<tr class="border-b border-gray-50 hover:bg-gray-50 cursor-pointer" onclick="abrirPanelCobro(${JSON.stringify(mesa||{id:mesaId,numero:'?'}).replace(/"/g,"'")})">
+          <td class="px-4 py-3 text-sm font-medium">Mesa ${mesa?.numero||'?'}</td>
+          <td class="px-4 py-3 text-xs text-gray-500">${pedMesa.length} pedido${pedMesa.length>1?'s':''}</td>
+          <td class="px-4 py-3 text-sm font-medium text-right">${formatCOP(totalMesa)}</td>
+          <td class="px-4 py-3 text-center"><span class="badge bg-amber-100 text-amber-700">pendiente</span></td>
+          <td class="px-4 py-3 text-right"><button class="text-xs text-green-600 hover:underline">Cobrar</button></td>
         </tr>`;
-      }).join('')||'<tr><td colspan="6" class="px-4 py-6 text-center text-sm text-gray-400">Sin productos.</td></tr>';
+      }).join('')||'<tr><td colspan="5" class="px-4 py-6 text-center text-sm text-gray-400">Sin mesas pendientes de cobro.</td></tr>';
     }
 
-    window.editarStock = async (id,actual) => {
-      const n=prompt(`Stock actual: ${actual}\nNuevo stock:`);
-      if(n===null||isNaN(n)) return;
-      await updateDoc(doc(db,'inventario',id),{stock:parseFloat(n)});
+    window.abrirPanelCobro = (mesa) => {
+      if(!mesa||!mesa.id) return;
+      const pedMesa = pedidosData.filter(p=>p.mesaId===mesa.id && !['pagado','cancelado'].includes(p.estado));
+      const total = pedMesa.reduce((s,p)=>s+(p.total||0),0);
+
+      let html=`
+        <div class="mb-4">
+          <div class="text-xs text-gray-500">Total a cobrar</div>
+          <div class="text-2xl font-bold text-green-700">${formatCOP(total)}</div>
+        </div>
+        <div class="mb-4 space-y-2">`;
+
+      pedMesa.forEach(p=>{
+        html+=`<div class="bg-gray-50 rounded-xl p-3">
+          <div class="text-sm font-medium">${p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ')}</div>`;
+        (p.adicionales||[]).forEach(a=>{ html+=`<div class="text-xs text-gray-500">+ ${a.nombre} ${formatCOP(a.precio)}</div>`; });
+        if(p.paraLlevar) html+=`<div class="text-xs text-gray-500">+ Desechables ${formatCOP(configNegocio.precioDesechables)}</div>`;
+        html+=`<div class="text-sm font-medium text-green-700">${formatCOP(p.total)}</div></div>`;
+      });
+
+      html+=`</div>
+        <div class="space-y-2">
+          <button onclick="cobrarTotal('${mesa.id}',${total})" class="w-full bg-green-600 text-white py-2.5 rounded-xl text-sm font-medium hover:bg-green-700">💳 Cobrar total</button>
+          <button onclick="abrirCuentaSeparada('${mesa.id}')" class="w-full border border-gray-200 py-2.5 rounded-xl text-sm text-gray-700 hover:bg-gray-50">👥 Dividir cuenta</button>
+        </div>`;
+
+      document.getElementById('panel-titulo').textContent=`Cobro — Mesa ${mesa.numero}`;
+      document.getElementById('panel-contenido').innerHTML=html;
+      abrirPanel();
     };
 
-    window.abrirModalInventario = () => {
+    window.cobrarTotal = (mesaId, total) => {
       showModal(`
-        <h3 class="text-base font-semibold mb-4">Agregar producto</h3>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Nombre *</label><input id="inv-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Arroz blanco"></div>
-          <div class="grid grid-cols-2 gap-3">
-            <div><label class="text-xs text-gray-500">Stock inicial</label><input id="inv-stock" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="0"></div>
-            <div><label class="text-xs text-gray-500">Stock máximo</label><input id="inv-max" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="20"></div>
-          </div>
-          <div><label class="text-xs text-gray-500">Unidad</label><input id="inv-unidad" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="kg / unidades / litros"></div>
+        <h3 class="text-base font-semibold mb-4">Método de pago</h3>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+          <button onclick="selMetodo('efectivo',this)" class="metodo-btn border-2 border-green-600 bg-green-50 text-green-800 rounded-xl py-3 text-sm font-medium">💵 Efectivo</button>
+          <button onclick="selMetodo('tarjeta',this)" class="metodo-btn border-2 border-gray-200 text-gray-600 rounded-xl py-3 text-sm">💳 Tarjeta</button>
+          <button onclick="selMetodo('nequi',this)" class="metodo-btn border-2 border-gray-200 text-gray-600 rounded-xl py-3 text-sm">📱 Nequi</button>
         </div>
-        <div class="flex justify-end gap-2 mt-5">
+        <div class="text-center text-lg font-semibold text-green-700 mb-4">Total: ${formatCOP(total)}</div>
+        <div class="flex justify-end gap-2">
           <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="guardarInventario()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+          <button onclick="procesarCobro('${mesaId}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Confirmar cobro</button>
         </div>`);
     };
 
-    window.guardarInventario = async () => {
-      const nombre=document.getElementById('inv-nombre').value.trim();
-      if(!nombre){alert('El nombre es obligatorio.');return;}
-      await addDoc(collection(db,'inventario'),{nombre,stock:parseFloat(document.getElementById('inv-stock').value)||0,stockMax:parseFloat(document.getElementById('inv-max').value)||10,unidad:document.getElementById('inv-unidad').value,creadoEn:serverTimestamp()});
+    let metodoPagoSeleccionado='efectivo';
+    window.selMetodo=(m,el)=>{
+      metodoPagoSeleccionado=m;
+      document.querySelectorAll('.metodo-btn').forEach(b=>b.className='metodo-btn border-2 border-gray-200 text-gray-600 rounded-xl py-3 text-sm');
+      el.className='metodo-btn border-2 border-green-600 bg-green-50 text-green-800 rounded-xl py-3 text-sm font-medium';
+    };
+
+    window.procesarCobro = async (mesaId) => {
+      const pedMesa = pedidosData.filter(p=>p.mesaId===mesaId && !['pagado','cancelado'].includes(p.estado));
+      const total = pedMesa.reduce((s,p)=>s+(p.total||0),0);
+      for(const p of pedMesa){
+        await updateDoc(doc(db,'pedidos',p.id),{estado:'pagado',metodoPago:metodoPagoSeleccionado,pagadoEn:serverTimestamp()});
+      }
+      await updateDoc(doc(db,'mesas',mesaId),{estado:'libre',personas:0});
+      closeModal();
+      cerrarPanel();
+      imprimirRecibo(pedMesa,metodoPagoSeleccionado,total);
+    };
+
+    window.abrirCuentaSeparada = (mesaId) => {
+      const pedMesa = pedidosData.filter(p=>p.mesaId===mesaId && !['pagado','cancelado'].includes(p.estado));
+      const mesa = mesasData.find(m=>m.id===mesaId);
+      const personas = mesa?.personas||2;
+
+      let html=`<h3 class="text-base font-semibold mb-3">Dividir cuenta — Mesa ${mesa?.numero}</h3>
+        <p class="text-xs text-gray-500 mb-3">Asigna cada pedido a una persona para cobrar por separado.</p>
+        <div class="space-y-3" id="items-division">`;
+
+      pedMesa.forEach(p=>{
+        const nombre = p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
+        html+=`<div class="bg-gray-50 rounded-xl p-3">
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-sm font-medium">${nombre}</div>
+              <div class="text-sm text-green-700">${formatCOP(p.total)}</div>
+            </div>
+            <select data-pedido-id="${p.id}" data-total="${p.total}" class="division-select border border-gray-200 rounded-lg px-2 py-1 text-sm">
+              ${Array.from({length:personas},(_,i)=>`<option value="${i+1}">Persona ${i+1}</option>`).join('')}
+            </select>
+          </div>
+        </div>`;
+      });
+
+      html+=`</div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="procesarCuentaSeparada('${mesaId}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Cobrar por separado</button>
+        </div>`;
+
+      closeModal();
+      setTimeout(()=>showModal(html),100);
+    };
+
+    window.procesarCuentaSeparada = async (mesaId) => {
+      const selects = document.querySelectorAll('.division-select');
+      const grupos = {};
+      selects.forEach(s=>{
+        const persona=s.value;
+        if(!grupos[persona]) grupos[persona]={pedidoIds:[],total:0};
+        grupos[persona].pedidoIds.push(s.dataset.pedidoId);
+        grupos[persona].total+=parseFloat(s.dataset.total)||0;
+      });
+
+      closeModal();
+      cerrarPanel();
+
+      for(const [persona, grupo] of Object.entries(grupos)){
+        const metodo = prompt(`Persona ${persona} — Total: ${formatCOP(grupo.total)}\nMétodo de pago:\n1 - Efectivo\n2 - Tarjeta\n3 - Nequi`);
+        const ops={'1':'efectivo','2':'tarjeta','3':'nequi'};
+        const pago=ops[metodo?.trim()]||'efectivo';
+        for(const pid of grupo.pedidoIds){
+          await updateDoc(doc(db,'pedidos',pid),{estado:'pagado',metodoPago:pago,pagadoEn:serverTimestamp()});
+        }
+        // Imprimir recibo parcial
+        const pedsParcial=pedidosData.filter(p=>grupo.pedidoIds.includes(p.id));
+        imprimirRecibo(pedsParcial,pago,grupo.total,`Persona ${persona}`);
+      }
+      await updateDoc(doc(db,'mesas',mesaId),{estado:'libre',personas:0});
+    };
+
+    // ── RECIBO ────────────────────────────────────
+    function imprimirRecibo(pedidos, metodo, total, titulo='') {
+      const hora=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      const fecha=new Date().toLocaleDateString('es-CO');
+      let lineas='';
+
+      pedidos.forEach(p=>{
+        if(p.tipo==='corriente'){
+          lineas+=`<div style="display:flex;justify-content:space-between"><span>Almuerzo Corriente</span><span>${formatCOP(configNegocio.precioCorriente)}</span></div>`;
+          if(p.sopaAparte) lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ Sopa aparte</span><span>${formatCOP(configNegocio.precioSopa)}</span></div>`;
+        } else {
+          (p.items||[]).forEach(i=>{ lineas+=`<div style="display:flex;justify-content:space-between"><span>${i.cantidad}x ${i.nombre}</span><span>${formatCOP(i.precio)}</span></div>`; });
+        }
+        (p.adicionales||[]).forEach(a=>{ lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ ${a.nombre}</span><span>${formatCOP(a.precio)}</span></div>`; });
+        if(p.paraLlevar) lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ Desechables</span><span>${formatCOP(configNegocio.precioDesechables)}</span></div>`;
+      });
+
+      document.getElementById('print-area').innerHTML=`
+        <div style="font-family:monospace;font-size:13px;width:80mm;padding:8px">
+          <div style="text-align:center;font-weight:bold;font-size:15px">${configNegocio.nombre||'Rest-Control'}</div>
+          ${configNegocio.nit?`<div style="text-align:center;font-size:11px">NIT: ${configNegocio.nit}</div>`:''}
+          ${configNegocio.direccion?`<div style="text-align:center;font-size:11px">${configNegocio.direccion}</div>`:''}
+          ${configNegocio.telefono?`<div style="text-align:center;font-size:11px">Tel: ${configNegocio.telefono}</div>`:''}
+          <div style="text-align:center;font-size:11px">${fecha} ${hora}</div>
+          ${titulo?`<div style="text-align:center;font-size:12px;font-weight:bold">${titulo}</div>`:''}
+          <div style="border-top:1px dashed #000;margin:6px 0"></div>
+          ${lineas}
+          <div style="border-top:1px dashed #000;margin:6px 0"></div>
+          <div style="display:flex;justify-content:space-between;font-weight:bold"><span>TOTAL</span><span>${formatCOP(total)}</span></div>
+          <div style="font-size:11px;margin-top:2px">Pago: ${metodo}</div>
+          <div style="border-top:1px dashed #000;margin:6px 0"></div>
+          <div style="text-align:center;font-size:11px">${configNegocio.mensaje||'¡Gracias por su visita!'}</div>
+        </div>`;
+      document.getElementById('print-area').classList.remove('hidden');
+      window.print();
+      document.getElementById('print-area').classList.add('hidden');
+    }
+
+    // ── MENÚ Y PRECIOS ────────────────────────────
+    window.showMenuTab = (tab, el) => {
+      document.querySelectorAll('.menu-tab').forEach(t=>{ t.className='menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent'; });
+      el.className='menu-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600';
+      document.getElementById('tab-corriente').classList.toggle('hidden',tab!=='corriente');
+      document.getElementById('tab-carta').classList.toggle('hidden',tab!=='carta');
+      document.getElementById('tab-adicionales').classList.toggle('hidden',tab!=='adicionales');
+    };
+
+    // CORRIENTE
+    function renderCorriente() {
+      const comp=corrienteData.componentes||{};
+      const el=document.getElementById('componentes-corriente');
+      if(!Object.keys(comp).length){ el.innerHTML='<p class="text-sm text-gray-400">Sin componentes configurados. Agrega uno.</p>'; return; }
+      el.innerHTML=Object.entries(comp).map(([nombre,opciones])=>`
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="flex justify-between items-center mb-3">
+            <div class="text-sm font-medium text-gray-800">${nombre}</div>
+            <div class="flex gap-2">
+              <button onclick="abrirModalOpcion('${nombre}')" class="text-xs text-green-600 hover:underline">+ Opción</button>
+              <button onclick="eliminarComponente('${nombre}')" class="text-xs text-red-400 hover:underline">Eliminar</button>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            ${(opciones||[]).map(o=>`
+              <div class="flex items-center gap-1 px-3 py-1 rounded-full border text-xs ${o.activo?'bg-green-50 border-green-300 text-green-800':'bg-gray-50 border-gray-200 text-gray-400'}">
+                <span>${o.nombre}</span>
+                <button onclick="toggleOpcion('${nombre}','${o.nombre}',${!o.activo})" class="ml-1 hover:opacity-70">${o.activo?'✓':'○'}</button>
+              </div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    window.abrirModalComponente = () => {
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Nuevo componente</h3>
+        <div><label class="text-xs text-gray-500">Nombre del componente</label>
+          <input id="comp-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Proteína, Sopa, Principio..."/></div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="guardarComponente()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear</button>
+        </div>`);
+    };
+
+    window.guardarComponente = async () => {
+      const nombre=document.getElementById('comp-nombre').value.trim();
+      if(!nombre) return;
+      const comp=corrienteData.componentes||{};
+      comp[nombre]=[];
+      await setDoc(doc(db,'menu_corriente','hoy'),{componentes:comp});
       closeModal();
     };
 
-    // ── REPORTES ──────────────────────────────
-    function renderReportes(pedidos) {
-      const pag=pedidos.filter(p=>p.estado==='pagado');
-      const tot=pag.reduce((s,p)=>s+(p.total||0),0);
-      document.getElementById('stats-reportes').innerHTML=[
-        {label:'Ventas totales',value:formatCOP(tot)},{label:'Órdenes completadas',value:pag.length},
-        {label:'Ticket promedio',value:formatCOP(pag.length?tot/pag.length:0)},{label:'Platos en carta',value:menuItems.length}
-      ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold text-gray-900 mt-1">${s.value}</div></div>`).join('');
-      const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-      const vd=Array(7).fill(0);
-      pag.forEach(p=>{if(!p.pagadoEn)return;const d=p.pagadoEn.toDate?p.pagadoEn.toDate():new Date(p.pagadoEn);const df=Math.floor((Date.now()-d)/86400000);if(df<7)vd[6-df]+=p.total||0;});
-      const maxV=Math.max(...vd,1);
-      const lbs=Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(6-i));return dias[d.getDay()];});
-      document.getElementById('chart-ventas').innerHTML=vd.map((v,i)=>`<div class="flex flex-col items-center gap-1 flex-1"><div class="w-full bg-green-500 rounded-t" style="height:${Math.max(4,Math.round((v/maxV)*100))}px"></div><div class="text-xs text-gray-400">${lbs[i]}</div></div>`).join('');
-      const cnt={};pag.forEach(p=>(p.items||[]).forEach(i=>{cnt[i.nombre]=(cnt[i.nombre]||0)+i.cantidad;}));
-      const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);
-      const maxP=Math.max(...top.map(t=>t[1]),1);
-      document.getElementById('top-platos').innerHTML=top.map(([n,v])=>`<div class="flex items-center gap-3"><div class="text-xs text-gray-700 w-32 truncate">${n}</div><div class="flex-1 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxP)*100)}%"></div></div><div class="text-xs text-gray-500 w-4 text-right">${v}</div></div>`).join('')||'<p class="text-xs text-gray-400">Sin datos.</p>';
+    window.eliminarComponente = async (nombre) => {
+      if(!confirm(`¿Eliminar el componente "${nombre}"?`)) return;
+      const comp=corrienteData.componentes||{};
+      delete comp[nombre];
+      await setDoc(doc(db,'menu_corriente','hoy'),{componentes:comp});
+    };
+
+    window.abrirModalOpcion = (componente) => {
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Nueva opción para "${componente}"</h3>
+        <div><label class="text-xs text-gray-500">Nombre de la opción</label>
+          <input id="opcion-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Pollo asado, Fríjoles..."/></div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="guardarOpcion('${componente}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Agregar</button>
+        </div>`);
+    };
+
+    window.guardarOpcion = async (componente) => {
+      const nombre=document.getElementById('opcion-nombre').value.trim();
+      if(!nombre) return;
+      const comp=corrienteData.componentes||{};
+      if(!comp[componente]) comp[componente]=[];
+      comp[componente].push({nombre,activo:true});
+      await setDoc(doc(db,'menu_corriente','hoy'),{componentes:comp});
+      closeModal();
+    };
+
+    window.toggleOpcion = async (componente, opcionNombre, activo) => {
+      const comp=corrienteData.componentes||{};
+      const idx=comp[componente].findIndex(o=>o.nombre===opcionNombre);
+      if(idx>=0) comp[componente][idx].activo=activo;
+      await setDoc(doc(db,'menu_corriente','hoy'),{componentes:comp});
+    };
+
+    // CARTA
+    function renderCarta() {
+      document.getElementById('lista-carta').innerHTML=cartaData.map(p=>`
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="flex justify-between items-start mb-1">
+            <div class="text-sm font-medium">${p.nombre}</div>
+            <span class="badge ${p.activo?'bg-green-100 text-green-800':'bg-red-100 text-red-700'}">${p.activo?'activo':'inactivo'}</span>
+          </div>
+          <div class="text-xs text-gray-500 mb-2">${p.descripcion||''}</div>
+          <div class="flex justify-between items-center">
+            <span class="text-sm font-semibold text-green-700">${formatCOP(p.precio)}</span>
+            <button onclick="toggleCarta('${p.id}',${p.activo})" class="text-xs text-gray-400 hover:text-gray-700">${p.activo?'Desactivar':'Activar'}</button>
+          </div>
+        </div>`).join('')||'<p class="text-sm text-gray-400 col-span-3">Sin platos en carta.</p>';
     }
 
-    // ── USUARIOS ──────────────────────────────
+    window.toggleCarta = async (id, activo) => { await updateDoc(doc(db,'menu_carta',id),{activo:!activo}); };
+
+    window.abrirModalCarta = () => {
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Agregar plato a la carta</h3>
+        <div class="space-y-3">
+          <div><label class="text-xs text-gray-500">Nombre *</label>
+            <input id="carta-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Bandeja Paisa"/></div>
+          <div><label class="text-xs text-gray-500">Descripción</label>
+            <input id="carta-desc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Descripción breve"/></div>
+          <div><label class="text-xs text-gray-500">Precio *</label>
+            <input id="carta-precio" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="25000"/></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="guardarCarta()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+        </div>`);
+    };
+
+    window.guardarCarta = async () => {
+      const nombre=document.getElementById('carta-nombre').value.trim();
+      const precio=parseFloat(document.getElementById('carta-precio').value);
+      if(!nombre||!precio){alert('Nombre y precio obligatorios.');return;}
+      await addDoc(collection(db,'menu_carta'),{nombre,descripcion:document.getElementById('carta-desc').value,precio,activo:true,creadoEn:serverTimestamp()});
+      closeModal();
+    };
+
+    // ADICIONALES
+    function renderAdicionales() {
+      document.getElementById('lista-adicionales').innerHTML=adicionalesData.map(a=>`
+        <div class="bg-white border border-gray-100 rounded-xl p-4">
+          <div class="flex justify-between items-start mb-1">
+            <div class="text-sm font-medium">${a.nombre}</div>
+            <span class="badge ${a.activo?'bg-green-100 text-green-800':'bg-red-100 text-red-700'}">${a.activo?'activo':'inactivo'}</span>
+          </div>
+          <div class="flex justify-between items-center mt-2">
+            <span class="text-sm font-semibold text-green-700">${formatCOP(a.precio)}</span>
+            <button onclick="toggleAdicional('${a.id}',${a.activo})" class="text-xs text-gray-400 hover:text-gray-700">${a.activo?'Desactivar':'Activar'}</button>
+          </div>
+        </div>`).join('')||'<p class="text-sm text-gray-400 col-span-3">Sin adicionales.</p>';
+    }
+
+    window.toggleAdicional = async (id, activo) => { await updateDoc(doc(db,'menu_adicionales',id),{activo:!activo}); };
+
+    window.abrirModalAdicional = () => {
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Agregar adicional</h3>
+        <div class="space-y-3">
+          <div><label class="text-xs text-gray-500">Nombre *</label>
+            <input id="adic-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Patacón, Aguacate..."/></div>
+          <div><label class="text-xs text-gray-500">Precio *</label>
+            <input id="adic-precio" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="2000"/></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="guardarAdicional()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+        </div>`);
+    };
+
+    window.guardarAdicional = async () => {
+      const nombre=document.getElementById('adic-nombre').value.trim();
+      const precio=parseFloat(document.getElementById('adic-precio').value);
+      if(!nombre||!precio){alert('Nombre y precio obligatorios.');return;}
+      await addDoc(collection(db,'menu_adicionales'),{nombre,precio,activo:true,creadoEn:serverTimestamp()});
+      closeModal();
+    };
+
+    // ── GASTOS ────────────────────────────────────
+    function renderGastos() {
+      const periodo=document.getElementById('filtro-gastos-periodo')?.value||'hoy';
+      const cat=document.getElementById('filtro-gastos-cat')?.value||'todos';
+      const hoy=fechaHoy();
+      const now=new Date();
+
+      let filtered=gastosData.filter(g=>{
+        const fOk=periodo==='hoy'?isSameDay(g.fecha,hoy):isSameMonth(g.fecha,now.getFullYear(),now.getMonth());
+        const cOk=cat==='todos'||g.categoria===cat;
+        return fOk&&cOk;
+      });
+
+      const total=filtered.reduce((s,g)=>s+(g.valor||0),0);
+      const porCat={};
+      filtered.forEach(g=>{ porCat[g.categoria]=(porCat[g.categoria]||0)+(g.valor||0); });
+
+      document.getElementById('stats-gastos').innerHTML=[
+        {label:'Total gastos',value:formatCOP(total)},
+        {label:'Registros',value:filtered.length},
+        ...Object.entries(porCat).slice(0,2).map(([k,v])=>({label:k,value:formatCOP(v)}))
+      ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold text-gray-900 mt-1">${s.value}</div></div>`).join('');
+
+      const clrCat={Ingredientes:'bg-green-100 text-green-800',Servicios:'bg-blue-100 text-blue-800',Arriendo:'bg-purple-100 text-purple-800',Nomina:'bg-amber-100 text-amber-800',Mantenimiento:'bg-orange-100 text-orange-800',Otro:'bg-gray-100 text-gray-600'};
+      document.getElementById('lista-gastos').innerHTML=filtered.map(g=>`
+        <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4">
+          <div class="flex-1">
+            <div class="text-sm font-medium">${g.descripcion}</div>
+            <div class="text-xs text-gray-400">${g.registradoPor||''} · ${g.fecha?.toDate?g.fecha.toDate().toLocaleDateString('es-CO'):''}</div>
+          </div>
+          <span class="badge ${clrCat[g.categoria]||'bg-gray-100 text-gray-600'}">${g.categoria}</span>
+          <div class="text-sm font-semibold text-red-600">${formatCOP(g.valor)}</div>
+        </div>`).join('')||'<p class="text-sm text-gray-400">Sin gastos en este período.</p>';
+    }
+
+    window.filtrarGastos = renderGastos;
+
+    window.abrirModalGasto = () => {
+      showModal(`
+        <h3 class="text-base font-semibold mb-4">Registrar gasto</h3>
+        <div class="space-y-3">
+          <div><label class="text-xs text-gray-500">Descripción *</label>
+            <input id="g-desc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Ej: Compra de ingredientes"/></div>
+          <div><label class="text-xs text-gray-500">Categoría *</label>
+            <select id="g-cat" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1">
+              <option>Ingredientes</option><option>Servicios</option><option>Arriendo</option>
+              <option>Nomina</option><option>Mantenimiento</option><option>Otro</option>
+            </select></div>
+          <div><label class="text-xs text-gray-500">Valor *</label>
+            <input id="g-valor" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="0"/></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+          <button onclick="guardarGasto()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+        </div>`);
+    };
+
+    window.guardarGasto = async () => {
+      const desc=document.getElementById('g-desc').value.trim();
+      const cat=document.getElementById('g-cat').value;
+      const valor=parseFloat(document.getElementById('g-valor').value);
+      if(!desc||!valor){alert('Completa todos los campos.');return;}
+      await addDoc(collection(db,'gastos'),{descripcion:desc,categoria:cat,valor,fecha:serverTimestamp(),registradoPor:currentProfile.nombre||currentUser.email});
+      closeModal();
+    };
+
+    // ── REPORTES ──────────────────────────────────
+    window.showReporteTab=(tab,el)=>{
+      document.querySelectorAll('.reporte-tab').forEach(t=>{ t.className='reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent'; });
+      el.className='reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600';
+      document.getElementById('tab-reporte-diario').classList.toggle('hidden',tab!=='diario');
+      document.getElementById('tab-reporte-mensual').classList.toggle('hidden',tab==='diario');
+    };
+
+    function renderReportes() {
+      const hoy=fechaHoy();
+      const now=new Date();
+      const pedHoy=pedidosData.filter(p=>p.estado==='pagado'&&isSameDay(p.pagadoEn||p.creadoEn,hoy));
+      const pedMes=pedidosData.filter(p=>p.estado==='pagado'&&isSameMonth(p.pagadoEn||p.creadoEn,now.getFullYear(),now.getMonth()));
+      const gastosHoy=gastosData.filter(g=>isSameDay(g.fecha,hoy));
+      const gastosMes=gastosData.filter(g=>isSameMonth(g.fecha,now.getFullYear(),now.getMonth()));
+
+      const totalHoy=pedHoy.reduce((s,p)=>s+(p.total||0),0);
+      const gastosHoyTotal=gastosHoy.reduce((s,g)=>s+(g.valor||0),0);
+      const corrientesHoy=pedHoy.filter(p=>p.tipo==='corriente').length;
+      const cartaHoy=pedHoy.filter(p=>p.tipo==='carta').length;
+
+      // Stats diario
+      document.getElementById('stats-diario').innerHTML=[
+        {label:'Ventas hoy',value:formatCOP(totalHoy)},
+        {label:'Gastos hoy',value:formatCOP(gastosHoyTotal)},
+        {label:'Utilidad hoy',value:formatCOP(totalHoy-gastosHoyTotal)},
+        {label:'Corrientes / Carta',value:`${corrientesHoy} / ${cartaHoy}`}
+      ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold ${s.label==='Utilidad hoy'?(totalHoy-gastosHoyTotal>=0?'text-green-700':'text-red-600'):'text-gray-900'} mt-1">${s.value}</div></div>`).join('');
+
+      // Pagos hoy
+      const metodos={efectivo:0,tarjeta:0,nequi:0};
+      pedHoy.forEach(p=>{ if(metodos[p.metodoPago]!==undefined) metodos[p.metodoPago]+=p.total||0; });
+      const maxM=Math.max(...Object.values(metodos),1);
+      document.getElementById('chart-pagos').innerHTML=Object.entries(metodos).map(([m,v])=>`
+        <div class="flex items-center gap-3">
+          <div class="text-xs text-gray-600 w-16 capitalize">${m}</div>
+          <div class="flex-1 h-2 bg-gray-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:${Math.round((v/maxM)*100)}%"></div></div>
+          <div class="text-xs text-gray-700 w-24 text-right">${formatCOP(v)}</div>
+        </div>`).join('');
+
+      // Top platos hoy
+      const cnt={};
+      pedHoy.forEach(p=>{
+        if(p.tipo==='corriente') cnt['Almuerzo Corriente']=(cnt['Almuerzo Corriente']||0)+1;
+        else (p.items||[]).forEach(i=>{ cnt[i.nombre]=(cnt[i.nombre]||0)+i.cantidad; });
+      });
+      const topH=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      const maxH=Math.max(...topH.map(t=>t[1]),1);
+      document.getElementById('top-platos-diario').innerHTML=topH.map(([n,v])=>`
+        <div class="flex items-center gap-3">
+          <div class="text-xs text-gray-700 flex-1 truncate">${n}</div>
+          <div class="w-24 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxH)*100)}%"></div></div>
+          <div class="text-xs text-gray-500 w-4 text-right">${v}</div>
+        </div>`).join('')||'<p class="text-xs text-gray-400">Sin ventas hoy.</p>';
+
+      // Stats mensual
+      const totalMes=pedMes.reduce((s,p)=>s+(p.total||0),0);
+      const gastosMesTotal=gastosMes.reduce((s,g)=>s+(g.valor||0),0);
+      // Mes anterior
+      const mesAnt=now.getMonth()===0?11:now.getMonth()-1;
+      const yearAnt=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+      const pedMesAnt=pedidosData.filter(p=>p.estado==='pagado'&&isSameMonth(p.pagadoEn||p.creadoEn,yearAnt,mesAnt));
+      const totalMesAnt=pedMesAnt.reduce((s,p)=>s+(p.total||0),0);
+      const varMes=totalMesAnt?Math.round(((totalMes-totalMesAnt)/totalMesAnt)*100):0;
+
+      document.getElementById('stats-mensual').innerHTML=[
+        {label:'Ventas del mes',value:formatCOP(totalMes)},
+        {label:'Gastos del mes',value:formatCOP(gastosMesTotal)},
+        {label:'Utilidad del mes',value:formatCOP(totalMes-gastosMesTotal)},
+        {label:'vs mes anterior',value:`${varMes>0?'+':''}${varMes}%`}
+      ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold ${s.label.includes('Utilidad')?(totalMes-gastosMesTotal>=0?'text-green-700':'text-red-600'):s.label.includes('vs')?(varMes>=0?'text-green-700':'text-red-600'):'text-gray-900'} mt-1">${s.value}</div></div>`).join('');
+
+      // Gráfica mensual
+      const diasMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+      const ventasDia=Array(diasMes).fill(0);
+      pedMes.forEach(p=>{
+        const d=(p.pagadoEn||p.creadoEn)?.toDate?(p.pagadoEn||p.creadoEn).toDate():new Date(p.pagadoEn||p.creadoEn);
+        const dia=d.getDate()-1;
+        if(dia>=0&&dia<diasMes) ventasDia[dia]+=p.total||0;
+      });
+      const maxD=Math.max(...ventasDia,1);
+      document.getElementById('chart-mensual').innerHTML=ventasDia.map((v,i)=>`
+        <div class="flex flex-col items-center flex-1" title="${formatCOP(v)}">
+          <div class="w-full bg-green-500 rounded-t" style="height:${Math.max(2,Math.round((v/maxD)*100))}px"></div>
+          ${(i+1)%5===0?`<div class="text-xs text-gray-400">${i+1}</div>`:'<div class="h-3"></div>'}
+        </div>`).join('');
+
+      // Comparativo
+      document.getElementById('comparativo-mes').innerHTML=`
+        <div class="space-y-2">
+          <div class="flex justify-between text-sm"><span class="text-gray-600">Ventas este mes</span><span class="font-medium">${formatCOP(totalMes)}</span></div>
+          <div class="flex justify-between text-sm"><span class="text-gray-600">Ventas mes anterior</span><span class="font-medium">${formatCOP(totalMesAnt)}</span></div>
+          <div class="flex justify-between text-sm border-t pt-2"><span class="text-gray-600">Variación</span><span class="font-semibold ${varMes>=0?'text-green-700':'text-red-600'}">${varMes>0?'+':''}${varMes}%</span></div>
+        </div>`;
+
+      // Top platos mensual
+      const cntM={};
+      pedMes.forEach(p=>{
+        if(p.tipo==='corriente') cntM['Almuerzo Corriente']=(cntM['Almuerzo Corriente']||0)+1;
+        else (p.items||[]).forEach(i=>{ cntM[i.nombre]=(cntM[i.nombre]||0)+i.cantidad; });
+      });
+      const topM=Object.entries(cntM).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      const maxMp=Math.max(...topM.map(t=>t[1]),1);
+      document.getElementById('top-platos-mensual').innerHTML=topM.map(([n,v])=>`
+        <div class="flex items-center gap-3">
+          <div class="text-xs text-gray-700 flex-1 truncate">${n}</div>
+          <div class="w-24 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxMp)*100)}%"></div></div>
+          <div class="text-xs text-gray-500 w-4 text-right">${v}</div>
+        </div>`).join('')||'<p class="text-xs text-gray-400">Sin ventas este mes.</p>';
+    }
+
+    // ── USUARIOS ──────────────────────────────────
     function renderUsuarios(users) {
-      const clr={admin:'bg-purple-100 text-purple-800',gerente:'bg-blue-100 text-blue-800',mesero:'bg-green-100 text-green-800',cajero:'bg-amber-100 text-amber-800',cocina:'bg-red-100 text-red-800'};
+      const clr={admin:'bg-purple-100 text-purple-800',cajero:'bg-blue-100 text-blue-800',mesero:'bg-green-100 text-green-800'};
       document.getElementById('lista-usuarios').innerHTML=users.map(u=>`
         <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4">
-          <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-sm font-semibold text-green-800 flex-shrink-0">${(u.nombre||u.email||'?').charAt(0).toUpperCase()}</div>
-          <div class="flex-1 min-w-0"><div class="text-sm font-medium truncate">${u.nombre||'Sin nombre'}</div><div class="text-xs text-gray-400 truncate">${u.email||''}</div></div>
+          <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-sm font-semibold text-green-800 flex-shrink-0">
+            ${(u.nombre||'?').charAt(0).toUpperCase()}
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate">${u.nombre||'Sin nombre'}</div>
+            <div class="text-xs text-gray-400 truncate">${u.email||''}</div>
+          </div>
           <span class="badge ${clr[u.rol]||'bg-gray-100 text-gray-600'}">${u.rol||'sin rol'}</span>
           <div class="w-2 h-2 rounded-full flex-shrink-0 ${u.activo?'bg-green-400':'bg-gray-300'}"></div>
         </div>`).join('')||'<p class="text-sm text-gray-400">Sin usuarios.</p>';
@@ -546,13 +1493,17 @@
       showModal(`
         <h3 class="text-base font-semibold mb-4">Nuevo usuario</h3>
         <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Nombre *</label><input id="u-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Juan Pérez"></div>
-          <div><label class="text-xs text-gray-500">Correo *</label><input id="u-email" type="email" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="juan@restaurante.com"></div>
-          <div><label class="text-xs text-gray-500">Contraseña *</label><input id="u-pass" type="password" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Mínimo 6 caracteres"></div>
+          <div><label class="text-xs text-gray-500">Nombre *</label>
+            <input id="u-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Juan Pérez"/></div>
+          <div><label class="text-xs text-gray-500">Correo *</label>
+            <input id="u-email" type="email" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="juan@restaurante.com"/></div>
+          <div><label class="text-xs text-gray-500">Contraseña *</label>
+            <input id="u-pass" type="password" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Mínimo 6 caracteres"/></div>
           <div><label class="text-xs text-gray-500">Rol *</label>
             <select id="u-rol" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1">
-              <option value="mesero">Mesero</option><option value="cajero">Cajero</option>
-              <option value="cocina">Cocina</option><option value="gerente">Gerente</option><option value="admin">Administrador</option>
+              <option value="mesero">Mesero</option>
+              <option value="cajero">Cajero</option>
+              <option value="admin">Administrador</option>
             </select></div>
         </div>
         <div id="u-error" class="hidden text-xs text-red-600 mt-3 bg-red-50 px-3 py-2 rounded-lg"></div>
@@ -573,17 +1524,35 @@
         const cred=await createUserWithEmailAndPassword(auth,email,pass);
         await addDoc(collection(db,'usuarios'),{uid:cred.user.uid,nombre,email,rol,activo:true,creadoEn:serverTimestamp()});
         closeModal();
-      } catch(e) {
+      } catch(e){
         const msgs={'auth/email-already-in-use':'Correo ya registrado.','auth/weak-password':'Mínimo 6 caracteres.'};
         err.textContent=msgs[e.code]||e.message;
         err.classList.remove('hidden');
       }
     };
 
-    // ── MODAL ─────────────────────────────────
-    window.showModal = html => { document.getElementById('modal-box').innerHTML=html; document.getElementById('modal-overlay').classList.remove('hidden'); };
-    window.closeModal = () => { document.getElementById('modal-overlay').classList.add('hidden'); };
-    document.getElementById('modal-overlay').addEventListener('click', e => { if(e.target===document.getElementById('modal-overlay'))closeModal(); });
+    // ── PANEL LATERAL ─────────────────────────────
+    function abrirPanel(){
+      document.getElementById('panel-lateral').classList.add('open');
+      document.getElementById('panel-overlay').classList.remove('hidden');
+    }
+    window.cerrarPanel=()=>{
+      document.getElementById('panel-lateral').classList.remove('open');
+      document.getElementById('panel-overlay').classList.add('hidden');
+    };
+
+    // ── MODAL ─────────────────────────────────────
+    window.showModal=html=>{
+      document.getElementById('modal-box').innerHTML=html;
+      document.getElementById('modal-overlay').classList.add('show');
+    };
+    window.closeModal=()=>{
+      document.getElementById('modal-overlay').classList.remove('show');
+    };
+    document.getElementById('modal-overlay').addEventListener('click',e=>{
+      if(e.target===document.getElementById('modal-overlay')) closeModal();
+    });
+
   </script>
 </body>
 </html>
