@@ -547,10 +547,14 @@
         el.id = `mesa-${mesa.id}`;
         el.style.left = (mesa.x||50)+'px';
         el.style.top  = (mesa.y||50)+'px';
+        const btnElim = modoEdicionPlano && currentProfile.rol==='admin' && mesa.estado==='libre'
+          ? `<div onclick="event.stopPropagation();eliminarMesa('${mesa.id}',${mesa.numero})"
+              style="position:absolute;top:4px;right:4px;background:#fee2e2;color:#dc2626;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer">✕</div>` : '';
         el.innerHTML = `
           <div class="text-base font-bold">${mesa.numero}</div>
           <div class="text-xs">${mesa.estado==='ocupada'?`👤${mesa.personas||0}`:'libre'}</div>
-          <div class="text-xs opacity-70">${pedidosMesa.length?pedidosMesa.length+' ped':''}</div>`;
+          <div class="text-xs opacity-70">${pedidosMesa.length?pedidosMesa.length+' ped':''}</div>
+          ${btnElim}`;
 
         el.addEventListener('click', ()=> handleClickMesa(mesa));
 
@@ -650,6 +654,11 @@
       document.getElementById('btn-guardar-pos').classList.add('hidden');
       document.getElementById('modo-edicion-info').classList.add('hidden');
       renderPlano();
+    };
+
+    window.eliminarMesa = async (mesaId, mesaNum) => {
+      if(!confirm(`¿Eliminar Mesa ${mesaNum}? Esta acción no se puede deshacer.`)) return;
+      await deleteDoc(doc(db,'mesas',mesaId));
     };
 
     window.abrirModalCrearMesa = () => {
@@ -776,10 +785,6 @@
           <!-- Corriente -->
           <div id="form-corriente" class="space-y-2">
             ${htmlComp||'<p class="text-xs text-gray-400">No hay componentes configurados para hoy.</p>'}
-            <div class="flex items-center gap-2 mt-1">
-              <input type="checkbox" id="sopa-aparte" class="accent-green-600"/>
-              <label class="text-sm text-gray-600">Agregar sopa aparte <span class="text-green-700 font-medium">(+${formatCOP(configNegocio.precioSopa)})</span></label>
-            </div>
           </div>
 
           <!-- Carta -->
@@ -834,7 +839,6 @@
     window.confirmarPedido = async (mesaId, mesaNum) => {
       const tipo = document.getElementById('tipo-corriente').classList.contains('border-green-600')?'corriente':'carta';
       const paraLlevar = document.getElementById('para-llevar').checked;
-      const sopaAparte = document.getElementById('sopa-aparte')?.checked||false;
       const obs = document.getElementById('observaciones').value.trim();
       const comp = corrienteData.componentes||{};
 
@@ -846,7 +850,6 @@
           const sel=document.getElementById('comp-'+k);
           if(sel) selecciones[k]=sel.value;
         });
-        if(sopaAparte) total+=configNegocio.precioSopa||0;
       } else {
         document.querySelectorAll('.carta-check:checked').forEach(c=>{
           items.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1});
@@ -864,7 +867,7 @@
 
       const pedido = {
         mesaId, mesaNumero:mesaNum, tipo, items, selecciones,
-        adicionales, sopaAparte, paraLlevar, observaciones:obs,
+        adicionales, paraLlevar, observaciones:obs,
         total, estado:'espera', creadoEn:serverTimestamp(),
         creadoPor:currentProfile.nombre||currentUser.email
       };
@@ -885,7 +888,6 @@
         Object.entries(p.selecciones||{}).forEach(([k,v])=>{
           detalle+=`<div style="font-size:11px;margin-left:8px">${k}: ${v}</div>`;
         });
-        if(p.sopaAparte) detalle+=`<div style="font-size:11px;margin-left:8px">+ Sopa aparte</div>`;
       } else {
         (p.items||[]).forEach(i=>{ detalle+=`<div style="margin:4px 0">${i.cantidad}x ${i.nombre}</div>`; });
       }
@@ -1095,7 +1097,6 @@
       pedidos.forEach(p=>{
         if(p.tipo==='corriente'){
           lineas+=`<div style="display:flex;justify-content:space-between"><span>Almuerzo Corriente</span><span>${formatCOP(configNegocio.precioCorriente)}</span></div>`;
-          if(p.sopaAparte) lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ Sopa aparte</span><span>${formatCOP(configNegocio.precioSopa)}</span></div>`;
         } else {
           (p.items||[]).forEach(i=>{ lineas+=`<div style="display:flex;justify-content:space-between"><span>${i.cantidad}x ${i.nombre}</span><span>${formatCOP(i.precio)}</span></div>`; });
         }
@@ -1482,7 +1483,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium truncate">${u.nombre||'Sin nombre'}</div>
-            <div class="text-xs text-gray-400 truncate">${u.email||''}</div>
+            <div class="text-xs text-gray-400 truncate">Usuario: ${u.usuario||u.email||''}</div>
           </div>
           <span class="badge ${clr[u.rol]||'bg-gray-100 text-gray-600'}">${u.rol||'sin rol'}</span>
           <div class="w-2 h-2 rounded-full flex-shrink-0 ${u.activo?'bg-green-400':'bg-gray-300'}"></div>
@@ -1493,10 +1494,16 @@
       showModal(`
         <h3 class="text-base font-semibold mb-4">Nuevo usuario</h3>
         <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Nombre *</label>
-            <input id="u-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Juan Pérez"/></div>
-          <div><label class="text-xs text-gray-500">Correo *</label>
-            <input id="u-email" type="email" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="juan@restaurante.com"/></div>
+          <div><label class="text-xs text-gray-500">Nombre completo *</label>
+            <input id="u-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="María García"/></div>
+          <div>
+            <label class="text-xs text-gray-500">Usuario (para ingresar al sistema) *</label>
+            <div class="flex items-center mt-1 border border-gray-200 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-green-500">
+              <input id="u-usuario" class="flex-1 px-3 py-2 text-sm outline-none" placeholder="maria"/>
+              <span class="px-2 py-2 bg-gray-50 text-xs text-gray-400 border-l border-gray-200">@restcontrol.com</span>
+            </div>
+            <p class="text-xs text-gray-400 mt-1">Solo letras y números, sin espacios</p>
+          </div>
           <div><label class="text-xs text-gray-500">Contraseña *</label>
             <input id="u-pass" type="password" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Mínimo 6 caracteres"/></div>
           <div><label class="text-xs text-gray-500">Rol *</label>
@@ -1514,18 +1521,25 @@
     };
 
     window.crearUsuario = async () => {
-      const nombre=document.getElementById('u-nombre').value.trim();
-      const email=document.getElementById('u-email').value.trim();
-      const pass=document.getElementById('u-pass').value;
-      const rol=document.getElementById('u-rol').value;
-      const err=document.getElementById('u-error');
-      if(!nombre||!email||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+      const nombre  = document.getElementById('u-nombre').value.trim();
+      const usuario = document.getElementById('u-usuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+      const pass    = document.getElementById('u-pass').value;
+      const rol     = document.getElementById('u-rol').value;
+      const err     = document.getElementById('u-error');
+
+      if(!nombre||!usuario||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+      if(usuario.length<3){err.textContent='El usuario debe tener al menos 3 caracteres.';err.classList.remove('hidden');return;}
+
+      const email = usuario+'@restcontrol.com';
       try {
         const cred=await createUserWithEmailAndPassword(auth,email,pass);
-        await addDoc(collection(db,'usuarios'),{uid:cred.user.uid,nombre,email,rol,activo:true,creadoEn:serverTimestamp()});
+        await addDoc(collection(db,'usuarios'),{uid:cred.user.uid,nombre,usuario,email,rol,activo:true,creadoEn:serverTimestamp()});
         closeModal();
       } catch(e){
-        const msgs={'auth/email-already-in-use':'Correo ya registrado.','auth/weak-password':'Mínimo 6 caracteres.'};
+        const msgs={
+          'auth/email-already-in-use':'Este usuario ya existe. Elige otro nombre de usuario.',
+          'auth/weak-password':'La contraseña debe tener al menos 6 caracteres.'
+        };
         err.textContent=msgs[e.code]||e.message;
         err.classList.remove('hidden');
       }
