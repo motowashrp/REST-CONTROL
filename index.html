@@ -957,7 +957,7 @@
         </div>`);
     };
     window.guardarCliente=async()=>{
-      co      const nombre=document.getElementById('cli-nombre').value.trim();
+      const nombre=document.getElementById('cli-nombre').value.trim();
       if(!nombre){alert('El nombre es obligatorio.');return;}
       await addDoc(collection(db,'clientes'),{nombre,documento:document.getElementById('cli-doc').value.trim(),telefono:document.getElementById('cli-tel').value.trim(),saldoPendiente:0,creadoEn:serverTimestamp()});
       closeModal();
