@@ -25,9 +25,11 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-medium text-gray-600 mb-1.5">Correo electrónico</label>
-          <input type="email" id="email" placeholder="correo@restaurante.com"
-            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"/>
+          <label class="block text-xs font-medium text-gray-600 mb-1.5">Usuario</label>
+          <input type="text" id="usuario" placeholder="tunombre"
+            class="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            autocomplete="username" autocapitalize="none"/>
+          <p class="text-xs text-gray-400 mt-1">Si eres admin usa tu correo completo</p>
         </div>
         <div>
           <label class="block text-xs font-medium text-gray-600 mb-1.5">Contraseña</label>
@@ -59,39 +61,40 @@
     const app  = initializeApp(firebaseConfig);
     const auth = getAuth(app);
 
-    // Si ya hay sesión activa, ir directo al dashboard
     onAuthStateChanged(auth, user => {
       if (user) window.location.href = 'index.html';
     });
 
-    const btn    = document.getElementById('btn-login');
-    const errEl  = document.getElementById('error-msg');
+    const btn   = document.getElementById('btn-login');
+    const errEl = document.getElementById('error-msg');
 
     btn.addEventListener('click', async () => {
-      const email    = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-
+      let usuario  = document.getElementById('usuario').value.trim().toLowerCase();
+      const pass   = document.getElementById('password').value;
       errEl.classList.add('hidden');
 
-      if (!email || !password) {
+      if (!usuario || !pass) {
         errEl.textContent = 'Por favor completa todos los campos.';
         errEl.classList.remove('hidden');
         return;
       }
 
+      // Si no tiene @ es un usuario simple → agregar dominio
+      const email = usuario.includes('@') ? usuario : usuario + '@restcontrol.com';
+
       btn.disabled = true;
       btn.textContent = 'Entrando...';
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, pass);
         window.location.href = 'index.html';
       } catch (e) {
         const msgs = {
           'auth/user-not-found':       'Usuario no encontrado.',
           'auth/wrong-password':       'Contraseña incorrecta.',
-          'auth/invalid-email':        'Correo inválido.',
+          'auth/invalid-email':        'Usuario inválido.',
           'auth/too-many-requests':    'Demasiados intentos. Intenta más tarde.',
-          'auth/invalid-credential':   'Correo o contraseña incorrectos.',
+          'auth/invalid-credential':   'Usuario o contraseña incorrectos.',
           'auth/network-request-failed': 'Error de red. Verifica tu conexión.'
         };
         errEl.textContent = msgs[e.code] || ('Error: ' + e.code);
