@@ -6,1015 +6,1296 @@
   <title>Rest-Control</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { font-family: 'Segoe UI', system-ui, sans-serif; }
-    .section { display: none; }
-    .section.active { display: block; }
-    .nav-item { display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;color:#6b7280;cursor:pointer;transition:background 0.15s; }
-    .nav-item:hover { background:#f3f4f6;color:#111827; }
-    .nav-item.active { background:#f0fdf4;color:#166534;font-weight:500; }
-    .badge { font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500; }
-    .stat-card { background:#f9fafb;border-radius:12px;padding:14px; }
-    /* Plano */
-    #plano-salon { position:relative;background:#f8fafc;border:2px dashed #cbd5e1;border-radius:16px;width:100%;height:420px;overflow:hidden; }
-    .mesa-plano { position:absolute;width:72px;height:72px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid;transition:box-shadow 0.2s;user-select:none;font-size:12px; }
-    .mesa-plano:hover { box-shadow:0 4px 12px rgba(0,0,0,0.15); }
-    .mesa-libre { background:#f1f5f9;border-color:#94a3b8;color:#475569; }
-    .mesa-ocupada { background:#dcfce7;border-color:#16a34a;color:#15803d; }
-    .mesa-lista { background:#fef9c3;border-color:#ca8a04;color:#92400e; }
-    .mesa-drag { box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:100;opacity:0.9; }
-    /* Wizard cobro */
-    .paso { display:none; }
-    .paso.active { display:block; }
-    .metodo-pago-btn { border:2px solid #e5e7eb;border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;transition:all 0.15s;font-size:12px; }
-    .metodo-pago-btn.selected { border-color:#16a34a;background:#f0fdf4;color:#15803d;font-weight:500; }
-    /* Modal */
-    #modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center; }
-    #modal-overlay.show { display:flex; }
-    #modal-box { background:white;border-radius:20px;padding:24px;width:100%;max-width:500px;margin:16px;max-height:92vh;overflow-y:auto; }
-    /* Panel lateral */
-    #panel-lateral { position:fixed;right:-420px;top:0;height:100vh;width:400px;background:white;box-shadow:-4px 0 20px rgba(0,0,0,0.1);z-index:40;transition:right 0.3s;overflow-y:auto; }
-    #panel-lateral.open { right:0; }
-    /* Print */
-    @media print { body * { visibility:hidden; } #print-area,#print-area * { visibility:visible; } #print-area { position:fixed;left:0;top:0;width:80mm; } }
-    /* Navbar móvil */
-    #mobile-nav { display:none;position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #f1f5f9;z-index:30;padding:8px 0 12px;justify-content:space-around; }
-    .mobile-nav-item { display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 8px;font-size:10px;color:#9ca3af;cursor:pointer; }
-    .mobile-nav-item.active { color:#16a34a; }
-    .mobile-nav-item .icon { font-size:20px;line-height:1; }
-    @media (max-width:768px) {
-      aside#sidebar { display:none!important; }
-      #main-content { margin-left:0!important;padding-bottom:75px; }
-      #mobile-nav { display:flex!important; }
-      #plano-salon { height:300px; }
-      .mesa-plano { width:60px;height:60px;font-size:11px; }
-      #panel-lateral { width:100%;right:-100%; }
-      #modal-box { margin:8px;padding:16px;border-radius:16px; }
+    body{font-family:'Segoe UI',system-ui,sans-serif;}
+    .section{display:none;} .section.active{display:block;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;font-size:13px;color:#6b7280;cursor:pointer;transition:background 0.15s;}
+    .nav-item:hover{background:#f3f4f6;color:#111827;} .nav-item.active{background:#f0fdf4;color:#166534;font-weight:500;}
+    .badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
+    .stat-card{background:#f9fafb;border-radius:12px;padding:14px;}
+    #plano-salon{position:relative;background:#f8fafc;border:2px dashed #cbd5e1;border-radius:16px;width:100%;height:420px;overflow:hidden;}
+    .mesa-plano{position:absolute;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid;transition:box-shadow 0.2s;user-select:none;}
+    .mesa-plano:hover{box-shadow:0 4px 12px rgba(0,0,0,0.15);}
+    .mesa-libre{background:#f1f5f9;border-color:#94a3b8;color:#475569;}
+    .mesa-ocupada{background:#dcfce7;border-color:#16a34a;color:#15803d;}
+    .mesa-lista{background:#fef9c3;border-color:#ca8a04;color:#92400e;}
+    .mesa-drag{box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:100;opacity:0.9;}
+    .metodo-btn{border:2px solid #e5e7eb;border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;font-size:12px;transition:all 0.15s;}
+    .metodo-btn.selected{border-color:#16a34a;background:#f0fdf4;color:#15803d;font-weight:500;}
+    #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center;}
+    #modal-overlay.show{display:flex;}
+    #modal-box{background:white;border-radius:20px;padding:24px;width:100%;max-width:500px;margin:16px;max-height:92vh;overflow-y:auto;}
+    #panel-lateral{position:fixed;right:-420px;top:0;height:100vh;width:400px;background:white;box-shadow:-4px 0 20px rgba(0,0,0,0.1);z-index:40;transition:right 0.3s;overflow-y:auto;}
+    #panel-lateral.open{right:0;}
+    @media print{body *{visibility:hidden;} #print-area,#print-area *{visibility:visible;} #print-area{position:fixed;left:0;top:0;width:80mm;}}
+    #mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #f1f5f9;z-index:30;padding:8px 0 12px;justify-content:space-around;}
+    .mob-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;font-size:10px;color:#9ca3af;cursor:pointer;}
+    .mob-item.active{color:#16a34a;} .mob-item .icon{font-size:20px;line-height:1;}
+    @media(max-width:768px){
+      aside#sidebar{display:none!important;}
+      #main-content{margin-left:0!important;padding-bottom:75px;}
+      #mobile-nav{display:flex!important;}
+      #plano-salon{height:300px;}
+      #panel-lateral{width:100%;right:-100%;}
+      #modal-box{margin:8px;padding:16px;border-radius:16px;}
     }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
 
-  <aside id="sidebar" class="w-52 bg-white border-r border-gray-100 flex flex-col py-4 fixed h-full z-20">
-    <div class="px-4 pb-4 border-b border-gray-100 mb-2">
-      <div class="flex items-center gap-2">
-        <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-sm">🍽</div>
-        <div>
-          <div class="text-sm font-semibold text-gray-900" id="negocio-nombre-sidebar">Rest-Control</div>
-          <div class="text-xs text-gray-400" id="user-role">...</div>
-        </div>
-      </div>
+<aside id="sidebar" class="w-52 bg-white border-r border-gray-100 flex flex-col py-4 fixed h-full z-20">
+  <div class="px-4 pb-4 border-b border-gray-100 mb-2">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center text-white text-sm">🍽</div>
+      <div><div class="text-sm font-semibold text-gray-900" id="negocio-nombre-sidebar">Rest-Control</div>
+        <div class="text-xs text-gray-400" id="user-role">...</div></div>
     </div>
-    <div class="px-3 flex-1 overflow-y-auto" id="nav-menu"></div>
-    <div class="px-4 pt-4 border-t border-gray-100">
-      <div class="text-xs font-medium text-gray-800 truncate" id="user-name">...</div>
-      <button id="btn-logout" class="text-xs text-gray-400 hover:text-red-500 mt-1">Cerrar sesión</button>
-    </div>
-  </aside>
-
-  <main class="ml-52 flex-1 min-h-screen" id="main-content">
-
-    <!-- ══ PLANO ══ -->
-    <div id="sec-plano" class="section active">
-      <div class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Plano del restaurante</h1>
-        <div class="flex gap-2" id="plano-actions"></div>
-      </div>
-      <div class="p-4">
-        <div class="flex gap-4 mb-3 flex-wrap">
-          <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-slate-200 border border-slate-400"></div>Libre</div>
-          <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-green-200 border border-green-500"></div>Ocupada</div>
-          <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-yellow-200 border border-yellow-500"></div>Lista para cobrar</div>
-        </div>
-        <div id="plano-salon">
-          <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm" id="plano-loading">Cargando mesas...</div>
-        </div>
-        <div id="modo-edicion-info" class="hidden mt-3 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">✏️ Modo edición — arrastra las mesas. ✕ elimina mesas libres.</div>
-      </div>
-    </div>
-
-    <!-- ══ MENÚ Y PRECIOS ══ -->
-    <div id="sec-menu" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Menú y precios</h1>
-      </div>
-      <div class="p-6">
-        <div class="flex gap-2 mb-6 border-b border-gray-100">
-          <button onclick="showMenuTab('corriente',this)" class="menu-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Corriente del día</button>
-          <button onclick="showMenuTab('carta',this)" class="menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">A la carta</button>
-          <button onclick="showMenuTab('adicionales',this)" class="menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Adicionales</button>
-        </div>
-        <div id="tab-corriente">
-          <div class="grid grid-cols-2 gap-4 mb-6">
-            <div class="stat-card"><div class="text-xs text-gray-500 mb-1">Precio almuerzo corriente</div>
-              <div class="flex items-center gap-2"><span class="text-xl font-semibold" id="precio-corriente-display">$0</span><button onclick="editarPrecioConfig('corriente')" class="text-xs text-green-600 hover:underline">Editar</button></div></div>
-            <div class="stat-card"><div class="text-xs text-gray-500 mb-1">Precio desechables (llevar)</div>
-              <div class="flex items-center gap-2"><span class="text-xl font-semibold" id="precio-desechables-display">$0</span><button onclick="editarPrecioConfig('desechables')" class="text-xs text-green-600 hover:underline">Editar</button></div></div>
-          </div>
-          <div id="componentes-corriente" class="space-y-4"></div>
-          <button onclick="abrirModalComponente()" class="mt-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Agregar componente</button>
-        </div>
-        <div id="tab-carta" class="hidden">
-          <button onclick="abrirModalCarta()" class="mb-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Agregar plato</button>
-          <div class="grid grid-cols-3 gap-3" id="lista-carta"></div>
-        </div>
-        <div id="tab-adicionales" class="hidden">
-          <button onclick="abrirModalAdicional()" class="mb-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Agregar adicional</button>
-          <div class="grid grid-cols-3 gap-3" id="lista-adicionales"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ CLIENTES ══ -->
-    <div id="sec-clientes" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Clientes y créditos</h1>
-        <button onclick="abrirModalCrearCliente()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Nuevo cliente</button>
-      </div>
-      <div class="p-6">
-        <div class="grid grid-cols-3 gap-3 mb-6" id="stats-clientes"></div>
-        <div class="mb-4"><input id="buscar-cliente-input" onkeyup="filtrarClientes()" type="text" placeholder="Buscar por nombre o cédula..." class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm"/></div>
-        <div class="space-y-3" id="lista-clientes"></div>
-      </div>
-    </div>
-
-    <!-- ══ GASTOS ══ -->
-    <div id="sec-gastos" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Gastos</h1>
-        <button onclick="abrirModalGasto()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Registrar gasto</button>
-      </div>
-      <div class="p-6">
-        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-gastos"></div>
-        <div class="flex gap-2 mb-4">
-          <select id="filtro-gastos-periodo" onchange="filtrarGastos()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"><option value="hoy">Hoy</option><option value="mes">Este mes</option></select>
-          <select id="filtro-gastos-cat" onchange="filtrarGastos()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
-            <option value="todos">Todas</option><option>Ingredientes</option><option>Servicios</option><option>Arriendo</option><option>Nomina</option><option>Mantenimiento</option><option>Otro</option>
-          </select>
-        </div>
-        <div class="space-y-3" id="lista-gastos"></div>
-      </div>
-    </div>
-
-    <!-- ══ REPORTES ══ -->
-    <div id="sec-reportes" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10"><h1 class="text-base font-semibold text-gray-900">Reportes</h1></div>
-      <div class="p-6">
-        <div class="flex gap-2 mb-6 border-b border-gray-100">
-          <button onclick="showReporteTab('diario',this)" class="reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Diario</button>
-          <button onclick="showReporteTab('mensual',this)" class="reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Mensual</button>
-        </div>
-        <div id="tab-reporte-diario">
-          <div class="grid grid-cols-4 gap-3 mb-6" id="stats-diario"></div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-4">Ventas por método de pago</p><div id="chart-pagos" class="space-y-3"></div></div>
-            <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-4">Más vendidos hoy</p><div id="top-platos-diario" class="space-y-3"></div></div>
-          </div>
-        </div>
-        <div id="tab-reporte-mensual" class="hidden">
-          <div class="grid grid-cols-4 gap-3 mb-6" id="stats-mensual"></div>
-          <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4"><p class="text-xs font-medium text-gray-500 mb-4">Ventas por día</p><div class="flex items-end gap-1 h-32" id="chart-mensual"></div></div>
-          <div class="grid grid-cols-2 gap-4">
-            <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-3">Comparativo mes anterior</p><div id="comparativo-mes"></div></div>
-            <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-3">Más vendidos del mes</p><div id="top-platos-mensual" class="space-y-3"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ══ USUARIOS ══ -->
-    <div id="sec-usuarios" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <h1 class="text-base font-semibold text-gray-900">Usuarios</h1>
-        <button onclick="abrirModalUsuario()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Nuevo usuario</button>
-      </div>
-      <div class="p-6 space-y-3" id="lista-usuarios"></div>
-    </div>
-
-    <!-- ══ CONFIG ══ -->
-    <div id="sec-config" class="section">
-      <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10"><h1 class="text-base font-semibold text-gray-900">Configuración del negocio</h1></div>
-      <div class="p-6 max-w-lg">
-        <div class="bg-white border border-gray-100 rounded-xl p-6 space-y-4">
-          <div><label class="text-xs text-gray-500">Nombre del restaurante</label><input id="cfg-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Mi Restaurante"/></div>
-          <div><label class="text-xs text-gray-500">NIT</label><input id="cfg-nit" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-          <div><label class="text-xs text-gray-500">Teléfono</label><input id="cfg-telefono" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-          <div><label class="text-xs text-gray-500">Dirección</label><input id="cfg-direccion" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-          <div><label class="text-xs text-gray-500">Mensaje en el recibo</label><input id="cfg-mensaje" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="¡Gracias por su visita!"/></div>
-          <button onclick="guardarConfig()" class="w-full bg-green-600 text-white py-2.5 rounded-lg text-sm">Guardar</button>
-          <div id="cfg-ok" class="hidden text-xs text-green-600 text-center">✅ Guardado</div>
-        </div>
-      </div>
-    </div>
-
-  </main>
-
-  <!-- PANEL LATERAL -->
-  <div id="panel-lateral">
-    <div class="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
-      <h2 class="font-semibold text-gray-900" id="panel-titulo">Mesa</h2>
-      <button onclick="cerrarPanel()" class="text-gray-400 hover:text-gray-700 text-xl">✕</button>
-    </div>
-    <div id="panel-contenido" class="p-4"></div>
   </div>
-  <div id="panel-overlay" class="hidden fixed inset-0 z-30" onclick="cerrarPanel()"></div>
+  <div class="px-3 flex-1 overflow-y-auto" id="nav-menu"></div>
+  <div class="px-4 pt-4 border-t border-gray-100">
+    <div class="text-xs font-medium text-gray-800 truncate" id="user-name">...</div>
+    <button id="btn-logout" class="text-xs text-gray-400 hover:text-red-500 mt-1">Cerrar sesión</button>
+  </div>
+</aside>
 
-  <!-- MODAL -->
-  <div id="modal-overlay"><div id="modal-box"></div></div>
+<main class="ml-52 flex-1 min-h-screen" id="main-content">
 
-  <!-- NAV MÓVIL -->
-  <nav id="mobile-nav"></nav>
+  <!-- PLANO -->
+  <div id="sec-plano" class="section active">
+    <div class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-base font-semibold text-gray-900">Plano del restaurante</h1>
+      <div class="flex gap-2" id="plano-actions"></div>
+    </div>
+    <div class="p-4">
+      <div class="flex gap-4 mb-3 flex-wrap">
+        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-slate-200 border border-slate-400"></div>Libre</div>
+        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-green-200 border border-green-500"></div>Ocupada</div>
+        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-yellow-200 border border-yellow-500"></div>Lista para cobrar</div>
+      </div>
+      <div id="plano-salon"><div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm" id="plano-loading">Cargando mesas...</div></div>
+      <div id="modo-edicion-info" class="hidden mt-3 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">✏️ Modo edición activo — arrastra las mesas. ✕ elimina mesas libres.</div>
+    </div>
+  </div>
 
-  <!-- PRINT -->
-  <div id="print-area" class="hidden"></div>
+  <!-- PEDIDOS -->
+  <div id="sec-pedidos" class="section">
+    <div class="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-base font-semibold text-gray-900">Pedidos</h1>
+    </div>
+    <div class="p-4" id="sec-pedidos-contenido"></div>
+  </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, onSnapshot, query, where, orderBy, serverTimestamp, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyB63aYv7tTWvJoRXUD3A9R_m4OGNXPcUwg",
-      authDomain: "rest-control-a1a56.firebaseapp.com",
-      projectId: "rest-control-a1a56",
-      storageBucket: "rest-control-a1a56.firebasestorage.app",
-      messagingSenderId: "322368325909",
-      appId: "1:322368325909:web:d43c14ff5ef9b744e5c11c"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    let currentUser=null, currentProfile=null, configNegocio={};
-    let mesasData=[], pedidosData=[], cartaData=[], adicionalesData=[], corrienteData={}, gastosData=[], clientesData=[];
-    let modoEdicion=false;
-
-    // ── Utilidades ──────────────────────────────────
-    const fCOP = v => new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v||0);
-    const hoy  = () => new Date().toISOString().split('T')[0];
-    const sameDay = (ts,d) => { if(!ts) return false; const dt=ts.toDate?ts.toDate():new Date(ts); return dt.toISOString().split('T')[0]===d; };
-    const sameMon = (ts,y,m) => { if(!ts) return false; const dt=ts.toDate?ts.toDate():new Date(ts); return dt.getFullYear()===y&&dt.getMonth()===m; };
-
-    // ── AUTH ────────────────────────────────────────
-    onAuthStateChanged(auth, async user => {
-      if(!user){ window.location.href='login.html'; return; }
-      currentUser=user;
-      const q=query(collection(db,'usuarios'),where('uid','==',user.uid));
-      const snap=await getDocs(q);
-      currentProfile=snap.empty?{nombre:user.email,rol:'mesero'}:snap.docs[0].data();
-      document.getElementById('user-name').textContent=currentProfile.nombre||user.email;
-      document.getElementById('user-role').textContent=currentProfile.rol||'usuario';
-      buildNav(currentProfile.rol);
-      initListeners();
-      cargarConfig();
-    });
-    document.getElementById('btn-logout').addEventListener('click',async()=>{ await signOut(auth); window.location.href='login.html'; });
-
-    // ── NAVEGACIÓN ──────────────────────────────────
-    function buildNav(rol) {
-      const menus = {
-        admin:[
-          {id:'plano',icon:'▦',label:'Plano',full:'Plano de mesas'},
-          {id:'menu',icon:'🍽',label:'Menú',full:'Menú y precios'},
-          {id:'clientes',icon:'👤',label:'Clientes',full:'Clientes y créditos'},
-          {id:'gastos',icon:'💸',label:'Gastos',full:'Gastos'},
-          {id:'reportes',icon:'📊',label:'Reportes',full:'Reportes'},
-          {id:'usuarios',icon:'👥',label:'Usuarios',full:'Usuarios'},
-          {id:'config',icon:'⚙️',label:'Config',full:'Configuración'},
-        ],
-        cajero:[
-          {id:'plano',icon:'▦',label:'Plano',full:'Plano de mesas'},
-          {id:'menu',icon:'🍽',label:'Menú',full:'Menú y precios'},
-          {id:'clientes',icon:'👤',label:'Clientes',full:'Clientes y créditos'},
-          {id:'gastos',icon:'💸',label:'Gastos',full:'Gastos'},
-          {id:'reportes',icon:'📊',label:'Reportes',full:'Reportes'},
-        ],
-        mesero:[
-          {id:'plano',icon:'▦',label:'Plano',full:'Plano de mesas'},
-        ]
-      };
-      const items=menus[rol]||menus.mesero;
-      document.getElementById('nav-menu').innerHTML=items.map((m,i)=>
-        `<div class="nav-item${i===0?' active':''}" onclick="showSection('${m.id}',this)" data-section="${m.id}">${m.icon} ${m.full}</div>`
-      ).join('');
-      document.getElementById('mobile-nav').innerHTML=items.map((m,i)=>
-        `<div class="mobile-nav-item${i===0?' active':''}" onclick="showSectionMobile('${m.id}',this)" data-mob="${m.id}">
-          <span class="icon">${m.icon}</span><span>${m.label}</span></div>`).join('');
-      // Botones plano según rol
-      const pa=document.getElementById('plano-actions');
-      if(rol==='admin'){
-        pa.innerHTML=`
-          <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50">✏️ Editar plano</button>
-          <button id="btn-guardar-pos" onclick="guardarPosiciones()" class="hidden text-sm bg-green-600 text-white px-3 py-2 rounded-lg">💾 Guardar</button>
-          <button onclick="abrirModalCrearMesa()" class="text-sm bg-green-600 text-white px-3 py-2 rounded-lg">+ Mesa</button>`;
-      }
-    }
-
-    window.showSection=(id,el)=>{
-      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-      document.getElementById('sec-'+id)?.classList.add('active');
-      if(el) el.classList.add('active');
-    };
-    window.showSectionMobile=(id,el)=>{
-      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-      document.querySelectorAll('.mobile-nav-item,.nav-item').forEach(n=>n.classList.remove('active'));
-      document.getElementById('sec-'+id)?.classList.add('active');
-      if(el) el.classList.add('active');
-      document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
-    };
-
-    // ── LISTENERS ───────────────────────────────────
-    function initListeners() {
-      onSnapshot(collection(db,'mesas'),snap=>{ mesasData=snap.docs.map(d=>({id:d.id,...d.data()})); renderPlano(); });
-      onSnapshot(query(collection(db,'pedidos'),orderBy('creadoEn','desc')),snap=>{ pedidosData=snap.docs.map(d=>({id:d.id,...d.data()})); renderPlano(); renderReportes(); });
-      onSnapshot(collection(db,'menu_carta'),snap=>{ cartaData=snap.docs.map(d=>({id:d.id,...d.data()})); renderCarta(); });
-      onSnapshot(collection(db,'menu_adicionales'),snap=>{ adicionalesData=snap.docs.map(d=>({id:d.id,...d.data()})); renderAdicionales(); });
-      onSnapshot(doc(db,'menu_corriente','hoy'),snap=>{ corrienteData=snap.exists()?snap.data():{componentes:{}}; renderCorriente(); });
-      onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{ gastosData=snap.docs.map(d=>({id:d.id,...d.data()})); renderGastos(); renderReportes(); });
-      onSnapshot(collection(db,'clientes'),snap=>{ clientesData=snap.docs.map(d=>({id:d.id,...d.data()})); renderClientes(); renderReportes(); });
-      onSnapshot(collection(db,'usuarios'),snap=>{ renderUsuarios(snap.docs.map(d=>({id:d.id,...d.data()}))); });
-    }
-
-    // ── CONFIG ──────────────────────────────────────
-    async function cargarConfig() {
-      const snap=await getDoc(doc(db,'config','negocio'));
-      configNegocio=snap.exists()?snap.data():{nombre:'Rest-Control',nit:'',telefono:'',direccion:'',mensaje:'¡Gracias por su visita!',precioCorriente:0,precioDesechables:0};
-      document.getElementById('negocio-nombre-sidebar').textContent=configNegocio.nombre||'Rest-Control';
-      ['nombre','nit','telefono','direccion','mensaje'].forEach(k=>{ const el=document.getElementById('cfg-'+k); if(el) el.value=configNegocio[k]||''; });
-      actualizarPrecios();
-    }
-    function actualizarPrecios() {
-      document.getElementById('precio-corriente-display').textContent=fCOP(configNegocio.precioCorriente);
-      document.getElementById('precio-desechables-display').textContent=fCOP(configNegocio.precioDesechables);
-    }
-    window.guardarConfig=async()=>{
-      ['nombre','nit','telefono','direccion','mensaje'].forEach(k=>{ configNegocio[k]=document.getElementById('cfg-'+k).value.trim(); });
-      await setDoc(doc(db,'config','negocio'),configNegocio);
-      document.getElementById('negocio-nombre-sidebar').textContent=configNegocio.nombre;
-      const ok=document.getElementById('cfg-ok'); ok.classList.remove('hidden'); setTimeout(()=>ok.classList.add('hidden'),2000);
-    };
-    window.editarPrecioConfig=(tipo)=>{
-      const labels={corriente:'Precio almuerzo corriente',desechables:'Precio desechables (llevar)'};
-      const keys={corriente:'precioCorriente',desechables:'precioDesechables'};
-      showModal(`<h3 class="text-base font-semibold mb-4">Editar precio — ${labels[tipo]}</h3>
-        <input id="precio-input" type="number" value="${configNegocio[keys[tipo]]||0}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="guardarPrecioConfig('${keys[tipo]}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
-        </div>`);
-    };
-    window.guardarPrecioConfig=async(key)=>{ configNegocio[key]=parseFloat(document.getElementById('precio-input').value)||0; await setDoc(doc(db,'config','negocio'),configNegocio); actualizarPrecios(); closeModal(); };
-
-    // ════════════════════════════════════════════════
-    // PLANO DE MESAS — todos los usuarios
-    // ════════════════════════════════════════════════
-    function renderPlano() {
-      const salon=document.getElementById('plano-salon');
-      document.getElementById('plano-loading').style.display='none';
-      salon.querySelectorAll('.mesa-plano').forEach(m=>m.remove());
-      if(!mesasData.length){
-        document.getElementById('plano-loading').style.display='flex';
-        document.getElementById('plano-loading').textContent='Sin mesas.';
-        return;
-      }
-      mesasData.forEach(mesa=>{
-        const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
-        const listos=peds.length&&peds.every(p=>p.estado==='entregado');
-        const estado=mesa.estado==='ocupada'?(listos?'lista':'ocupada'):'libre';
-        const el=document.createElement('div');
-        el.className=`mesa-plano mesa-${estado}`; el.id=`mp-${mesa.id}`;
-        el.style.left=(mesa.x||50)+'px'; el.style.top=(mesa.y||50)+'px';
-        const btnElim=modoEdicion&&mesa.estado==='libre'
-          ?`<div onclick="event.stopPropagation();eliminarMesa('${mesa.id}',${mesa.numero})" style="position:absolute;top:2px;right:2px;background:#fee2e2;color:#dc2626;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer">✕</div>`:''
-        el.innerHTML=`<div style="font-weight:700;font-size:13px">${mesa.numero}</div>
-          <div style="font-size:10px">${mesa.estado==='ocupada'?`👤${mesa.personas||0}`:'libre'}</div>
-          <div style="font-size:10px;opacity:0.7">${peds.length?peds.length+'ped':''}</div>${btnElim}`;
-        el.addEventListener('click',()=>handleClickMesa(mesa));
-        if(modoEdicion&&currentProfile?.rol==='admin') makeDraggable(el,mesa.id);
-        salon.appendChild(el);
-      });
-    }
-
-    function handleClickMesa(mesa) {
-      if(modoEdicion) return;
-      const rol=currentProfile?.rol;
-      if(mesa.estado==='libre'){
-        if(rol==='cajero') return;
-        abrirModalOcuparMesa(mesa);
-      } else {
-        if(rol==='cajero') abrirPanelCobro(mesa);
-        else abrirPanelMesa(mesa);
-      }
-    }
-
-    function makeDraggable(el,mesaId) {
-      let sx,sy,sl,st; el.style.cursor='grab';
-      el.addEventListener('mousedown',e=>{
-        e.preventDefault(); sx=e.clientX; sy=e.clientY; sl=parseInt(el.style.left)||0; st=parseInt(el.style.top)||0;
-        el.classList.add('mesa-drag'); el.style.cursor='grabbing';
-        const mv=ev=>{ const r=document.getElementById('plano-salon').getBoundingClientRect();
-          el.style.left=Math.max(0,Math.min(sl+(ev.clientX-sx),r.width-76))+'px';
-          el.style.top=Math.max(0,Math.min(st+(ev.clientY-sy),r.height-76))+'px'; };
-        const up=()=>{ el.classList.remove('mesa-drag'); el.style.cursor='grab'; document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
-        document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
-      });
-      el.addEventListener('touchstart',e=>{
-        const t=e.touches[0]; sx=t.clientX; sy=t.clientY; sl=parseInt(el.style.left)||0; st=parseInt(el.style.top)||0;
-        el.classList.add('mesa-drag');
-        const mv=ev=>{ ev.preventDefault(); const tc=ev.touches[0]; const r=document.getElementById('plano-salon').getBoundingClientRect();
-          el.style.left=Math.max(0,Math.min(sl+(tc.clientX-sx),r.width-76))+'px';
-          el.style.top=Math.max(0,Math.min(st+(tc.clientY-sy),r.height-76))+'px'; };
-        const up=()=>{ el.classList.remove('mesa-drag'); document.removeEventListener('touchmove',mv); document.removeEventListener('touchend',up); };
-        document.addEventListener('touchmove',mv,{passive:false}); document.addEventListener('touchend',up);
-      });
-    }
-
-    window.toggleModoEdicion=()=>{
-      modoEdicion=!modoEdicion;
-      document.getElementById('btn-modo-edicion').textContent=modoEdicion?'✕ Cancelar':'✏️ Editar plano';
-      document.getElementById('btn-guardar-pos').classList.toggle('hidden',!modoEdicion);
-      document.getElementById('modo-edicion-info').classList.toggle('hidden',!modoEdicion);
-      renderPlano();
-    };
-    window.guardarPosiciones=async()=>{
-      const salon=document.getElementById('plano-salon');
-      await Promise.all(mesasData.map(m=>{ const el=salon.querySelector(`#mp-${m.id}`); if(!el) return; return updateDoc(doc(db,'mesas',m.id),{x:parseInt(el.style.left)||0,y:parseInt(el.style.top)||0}); }).filter(Boolean));
-      modoEdicion=false;
-      document.getElementById('btn-modo-edicion').textContent='✏️ Editar plano';
-      document.getElementById('btn-guardar-pos').classList.add('hidden');
-      document.getElementById('modo-edicion-info').classList.add('hidden');
-      renderPlano();
-    };
-    window.eliminarMesa=async(id,num)=>{ if(!confirm(`¿Eliminar Mesa ${num}?`)) return; await deleteDoc(doc(db,'mesas',id)); };
-    window.abrirModalCrearMesa=()=>{
-      const next=mesasData.length?Math.max(...mesasData.map(m=>m.numero||0))+1:1;
-      showModal(`<h3 class="text-base font-semibold mb-4">Nueva mesa</h3>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Número</label><input id="nm-num" type="number" value="${next}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-          <div><label class="text-xs text-gray-500">Capacidad</label><input id="nm-cap" type="number" value="4" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+  <!-- MENÚ -->
+  <div id="sec-menu" class="section">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10"><h1 class="text-base font-semibold">Menú y precios</h1></div>
+    <div class="p-6">
+      <div class="flex gap-2 mb-6 border-b border-gray-100">
+        <button onclick="showMenuTab('corriente',this)" class="menu-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Corriente del día</button>
+        <button onclick="showMenuTab('carta',this)" class="menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">A la carta</button>
+        <button onclick="showMenuTab('adicionales',this)" class="menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Adicionales</button>
+      </div>
+      <div id="tab-corriente">
+        <div class="grid grid-cols-2 gap-4 mb-6">
+          <div class="stat-card"><div class="text-xs text-gray-500 mb-1">Precio almuerzo corriente</div>
+            <div class="flex items-center gap-2"><span class="text-xl font-semibold" id="precio-corriente-display">$0</span><button onclick="editarPrecioConfig('corriente')" class="text-xs text-green-600">Editar</button></div></div>
+          <div class="stat-card"><div class="text-xs text-gray-500 mb-1">Precio desechables (llevar)</div>
+            <div class="flex items-center gap-2"><span class="text-xl font-semibold" id="precio-desechables-display">$0</span><button onclick="editarPrecioConfig('desechables')" class="text-xs text-green-600">Editar</button></div></div>
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="crearMesa()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear</button>
-        </div>`);
-    };
-    window.crearMesa=async()=>{
-      const num=parseInt(document.getElementById('nm-num').value); if(!num){alert('Ingresa un número.');return;}
-      await addDoc(collection(db,'mesas'),{numero:num,capacidad:parseInt(document.getElementById('nm-cap').value)||4,estado:'libre',personas:0,x:50+(mesasData.length%5)*85,y:50+Math.floor(mesasData.length/5)*90});
-      closeModal();
-    };
+        <div id="componentes-corriente" class="space-y-4"></div>
+        <button onclick="abrirModalComponente()" class="mt-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Agregar componente</button>
+      </div>
+      <div id="tab-carta" class="hidden"><button onclick="abrirModalCarta()" class="mb-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Agregar plato</button><div class="grid grid-cols-3 gap-3" id="lista-carta"></div></div>
+      <div id="tab-adicionales" class="hidden"><button onclick="abrirModalAdicional()" class="mb-4 text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Agregar adicional</button><div class="grid grid-cols-3 gap-3" id="lista-adicionales"></div></div>
+    </div>
+  </div>
 
-    // ── Abrir / ocupar mesa ─────────────────────────
-    window.abrirModalOcuparMesa=(mesa)=>{
-      showModal(`<h3 class="text-base font-semibold mb-4">Abrir Mesa ${mesa.numero}</h3>
-        <div><label class="text-xs text-gray-500">Número de personas</label>
-          <input id="personas-input" type="number" min="1" value="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="ocuparMesa('${mesa.id}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Abrir</button>
-        </div>`);
-    };
-    window.ocuparMesa=async(mesaId)=>{
-      const p=parseInt(document.getElementById('personas-input').value)||1;
-      await updateDoc(doc(db,'mesas',mesaId),{estado:'ocupada',personas:p,ocupadaEn:serverTimestamp()});
-      closeModal();
-    };
+  <!-- CLIENTES -->
+  <div id="sec-clientes" class="section">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-base font-semibold">Clientes y créditos</h1>
+      <button onclick="abrirModalCrearCliente()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Nuevo cliente</button>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-3 gap-3 mb-6" id="stats-clientes"></div>
+      <input id="buscar-cliente-input" onkeyup="filtrarClientes()" type="text" placeholder="Buscar por nombre o cédula..." class="w-full border border-gray-200 rounded-lg px-4 py-2 text-sm mb-4"/>
+      <div class="space-y-3" id="lista-clientes"></div>
+    </div>
+  </div>
 
-    // ════════════════════════════════════════════════
-    // PANEL DE MESA (mesero y admin)
-    // ════════════════════════════════════════════════
-    window.abrirPanelMesa=(mesa)=>{
-      const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
-      const total=peds.reduce((s,p)=>s+(p.total||0),0);
-      const rol=currentProfile?.rol;
-      document.getElementById('panel-titulo').textContent=`Mesa ${mesa.numero} — ${mesa.personas} persona${mesa.personas>1?'s':''}`;
-      let html=`<div class="mb-4 flex justify-between items-center">
-        <div><div class="text-xs text-gray-500">Total acumulado</div><div class="text-2xl font-bold text-green-700">${fCOP(total)}</div></div>
-        <button onclick="abrirFormPedido('${mesa.id}',${mesa.numero})" class="text-sm bg-green-600 text-white px-4 py-2 rounded-xl font-medium">+ Pedido</button>
-      </div>`;
-      if(peds.length){
-        peds.forEach(p=>{
-          const nombre=p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
-          const clrEst=p.estado==='entregado'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-700';
-          html+=`<div class="bg-gray-50 rounded-xl p-3 mb-2">
-            <div class="flex justify-between items-start mb-1">
-              <div class="text-sm font-medium flex-1">${nombre}</div>
-              <span class="badge ${clrEst} ml-2">${p.estado==='entregado'?'Entregado':'En cocina'}</span>
-            </div>`;
-          if(p.tipo==='corriente'&&p.selecciones){
-            Object.entries(p.selecciones).forEach(([k,v])=>{ if(v&&v.length) html+=`<div class="text-xs text-gray-500">${k}: ${Array.isArray(v)?v.join(' + '):v}</div>`; });
-          } else {
-            (p.items||[]).forEach(i=>{ html+=`<div class="text-xs text-gray-500">${i.cantidad}x ${i.nombre}</div>`; });
-          }
-          (p.adicionales||[]).forEach(a=>{ html+=`<div class="text-xs text-gray-500">+ ${a.nombre}</div>`; });
-          if(p.paraLlevar) html+=`<div class="text-xs text-blue-600">🛍 Para llevar</div>`;
-          if(p.observaciones) html+=`<div class="text-xs text-amber-600">📝 ${p.observaciones}</div>`;
-          html+=`<div class="flex justify-between items-center mt-2">
-            <span class="text-sm font-medium text-green-700">${fCOP(p.total)}</span>
-            <div class="flex gap-2">
-              ${p.estado==='en_cocina'?`<button onclick="marcarEntregado('${p.id}','${mesa.id}')" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg">✓ Entregar</button>`:''}
-              ${(rol==='admin'||rol==='mesero'&&p.creadoPor===currentProfile.nombre)?`<button onclick="abrirEditarPedido('${p.id}','${mesa.id}',${mesa.numero})" class="text-xs border border-gray-200 px-3 py-1 rounded-lg">Editar</button>`:''}
-              ${(rol==='admin'||rol==='cajero')?`<button onclick="eliminarPedido('${p.id}','${mesa.id}')" class="text-xs text-red-400 border border-red-200 px-3 py-1 rounded-lg">Eliminar</button>`:''}
-            </div>
-          </div></div>`;
-        });
-      } else {
-        html+=`<div class="text-sm text-gray-400 text-center py-4">Sin pedidos. Agrega el primero.</div>`;
-      }
-      document.getElementById('panel-contenido').innerHTML=html;
-      abrirPanel();
-    };
+  <!-- GASTOS -->
+  <div id="sec-gastos" class="section">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-base font-semibold">Gastos</h1>
+      <button onclick="abrirModalGasto()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Registrar gasto</button>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-4 gap-3 mb-6" id="stats-gastos"></div>
+      <div class="flex gap-2 mb-4">
+        <select id="filtro-gastos-periodo" onchange="filtrarGastos()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"><option value="hoy">Hoy</option><option value="mes">Este mes</option></select>
+        <select id="filtro-gastos-cat" onchange="filtrarGastos()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+          <option value="todos">Todas</option><option>Ingredientes</option><option>Servicios</option><option>Arriendo</option><option>Nomina</option><option>Mantenimiento</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="space-y-3" id="lista-gastos"></div>
+    </div>
+  </div>
 
-    window.marcarEntregado=async(pedidoId,mesaId)=>{
-      await updateDoc(doc(db,'pedidos',pedidoId),{estado:'entregado',entregadoEn:serverTimestamp()});
-      const mesa=mesasData.find(m=>m.id===mesaId); if(mesa) setTimeout(()=>abrirPanelMesa(mesa),300);
-    };
-
-    window.eliminarPedido=async(pedidoId,mesaId)=>{
-      if(!confirm('¿Eliminar este pedido?')) return;
-      await deleteDoc(doc(db,'pedidos',pedidoId));
-      const mesa=mesasData.find(m=>m.id===mesaId); if(mesa) setTimeout(()=>abrirPanelMesa(mesa),300);
-    };
-
-    // ════════════════════════════════════════════════
-    // FORMULARIO DE PEDIDO (agregar / editar)
-    // ════════════════════════════════════════════════
-    window.abrirFormPedido=(mesaId,mesaNum,pedidoEditar=null)=>{
-      cerrarPanel();
-      const cartaDisp=cartaData.filter(p=>p.activo);
-      const adicsDisp=adicionalesData.filter(a=>a.activo);
-      const comp=corrienteData.componentes||{};
-      let htmlComp='';
-      Object.keys(comp).forEach(k=>{
-        const ops=comp[k].filter(o=>o.activo);
-        if(!ops.length) return;
-        const selPrev=pedidoEditar?.selecciones?.[k]||[];
-        htmlComp+=`<div class="mb-2"><label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">${k}</label>
-          <div class="flex flex-wrap gap-2 mt-1">${ops.map(o=>`
-            <label class="flex items-center gap-1.5 cursor-pointer bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-green-400">
-              <input type="checkbox" name="comp-${k}" value="${o.nombre}" ${Array.isArray(selPrev)&&selPrev.includes(o.nombre)?'checked':''} class="comp-check accent-green-600"/>
-              <span class="text-sm">${o.nombre}</span></label>`).join('')}
-          </div></div>`;
-      });
-      const esCorriente=!pedidoEditar||pedidoEditar.tipo==='corriente';
-      showModal(`
-        <h3 class="text-base font-semibold mb-3">${pedidoEditar?'Editar':'Nuevo'} pedido — Mesa ${mesaNum}</h3>
-        <div class="space-y-3">
-          <div>
-            <label class="text-xs font-medium text-gray-600">Tipo</label>
-            <div class="grid grid-cols-2 gap-2 mt-1">
-              <button onclick="selTipo('corriente',this)" id="tipo-corriente" class="tipo-btn border-2 ${esCorriente?'border-green-600 bg-green-50 text-green-800':'border-gray-200 text-gray-600'} rounded-lg py-2 text-sm font-medium">🍽 Corriente</button>
-              <button onclick="selTipo('carta',this)" id="tipo-carta" class="tipo-btn border-2 ${!esCorriente?'border-green-600 bg-green-50 text-green-800':'border-gray-200 text-gray-600'} rounded-lg py-2 text-sm">🍴 A la carta</button>
-            </div>
-          </div>
-          <div id="form-corriente" class="${!esCorriente?'hidden':''} bg-gray-50 rounded-xl p-3 space-y-1">
-            ${htmlComp||'<p class="text-xs text-gray-400">Sin componentes configurados.</p>'}
-          </div>
-          <div id="form-carta" class="${esCorriente?'hidden':''} space-y-1 max-h-40 overflow-y-auto bg-gray-50 rounded-xl p-3">
-            ${cartaDisp.map(p=>`
-              <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-white rounded px-1">
-                <input type="checkbox" value="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" class="carta-check accent-green-600" ${(pedidoEditar?.items||[]).some(i=>i.id===p.id)?'checked':''}/>
-                <span class="text-sm flex-1">${p.nombre}</span>
-                <span class="text-sm font-medium text-green-700">${fCOP(p.precio)}</span></label>`).join('')||'<p class="text-xs text-gray-400">Sin platos.</p>'}
-          </div>
-          ${adicsDisp.length?`<div><label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Adicionales</label>
-            <div class="space-y-1 mt-1 max-h-28 overflow-y-auto bg-gray-50 rounded-xl p-3">
-              ${adicsDisp.map(a=>`
-                <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-white rounded px-1">
-                  <input type="checkbox" value="${a.id}" data-nombre="${a.nombre}" data-precio="${a.precio}" class="adic-check accent-green-600" ${(pedidoEditar?.adicionales||[]).some(x=>x.id===a.id)?'checked':''}/>
-                  <span class="text-sm flex-1">${a.nombre}</span>
-                  <span class="text-sm font-medium text-green-700">${fCOP(a.precio)}</span></label>`).join('')}
-            </div></div>`:''}
-          <div class="flex items-center gap-2">
-            <input type="checkbox" id="para-llevar" class="accent-green-600" ${pedidoEditar?.paraLlevar?'checked':''}/>
-            <label class="text-sm text-gray-600">Para llevar <span class="text-green-700">(+${fCOP(configNegocio.precioDesechables)})</span></label>
-          </div>
-          <div><label class="text-xs font-medium text-gray-600">Observaciones</label>
-            <textarea id="observaciones" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 resize-none" placeholder="Sin cebolla...">${pedidoEditar?.observaciones||''}</textarea></div>
+  <!-- REPORTES -->
+  <div id="sec-reportes" class="section">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10"><h1 class="text-base font-semibold">Reportes</h1></div>
+    <div class="p-6">
+      <div class="flex gap-2 mb-6 border-b border-gray-100">
+        <button onclick="showReporteTab('diario',this)" class="reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Diario</button>
+        <button onclick="showReporteTab('mensual',this)" class="reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Mensual</button>
+      </div>
+      <div id="tab-reporte-diario">
+        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-diario"></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-4">Pagos por método</p><div id="chart-pagos" class="space-y-3"></div></div>
+          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-4">Más vendidos hoy</p><div id="top-platos-diario" class="space-y-3"></div></div>
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="confirmarPedido('${mesaId}',${mesaNum},'${pedidoEditar?.id||''}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg font-medium">✓ Confirmar e imprimir</button>
-        </div>`);
-    };
+      </div>
+      <div id="tab-reporte-mensual" class="hidden">
+        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-mensual"></div>
+        <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4"><p class="text-xs font-medium text-gray-500 mb-4">Ventas por día</p><div class="flex items-end gap-1 h-32" id="chart-mensual"></div></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-3">Comparativo mes anterior</p><div id="comparativo-mes"></div></div>
+          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-3">Más vendidos del mes</p><div id="top-platos-mensual" class="space-y-3"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    window.abrirEditarPedido=(pedidoId,mesaId,mesaNum)=>{
-      const p=pedidosData.find(x=>x.id===pedidoId); if(!p) return;
-      cerrarPanel();
-      abrirFormPedido(mesaId,mesaNum,p);
-    };
+  <!-- USUARIOS -->
+  <div id="sec-usuarios" class="section">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+      <h1 class="text-base font-semibold">Usuarios</h1>
+      <button onclick="abrirModalUsuario()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg">+ Nuevo usuario</button>
+    </div>
+    <div class="p-6 space-y-3" id="lista-usuarios"></div>
+  </div>
 
-    window.selTipo=(tipo,el)=>{
-      document.querySelectorAll('.tipo-btn').forEach(b=>{ b.className='tipo-btn border-2 border-gray-200 text-gray-600 rounded-lg py-2 text-sm'; });
-      el.className='tipo-btn border-2 border-green-600 bg-green-50 text-green-800 rounded-lg py-2 text-sm font-medium';
-      document.getElementById('form-corriente').classList.toggle('hidden',tipo==='carta');
-      document.getElementById('form-carta').classList.toggle('hidden',tipo==='corriente');
-    };
+  <!-- CONFIG -->
+  <div id="sec-config" class="section">
+    <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10"><h1 class="text-base font-semibold">Configuración del negocio</h1></div>
+    <div class="p-6 max-w-lg">
+      <div class="bg-white border border-gray-100 rounded-xl p-6 space-y-4">
+        <div><label class="text-xs text-gray-500">Nombre del restaurante</label><input id="cfg-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        <div><label class="text-xs text-gray-500">NIT</label><input id="cfg-nit" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        <div><label class="text-xs text-gray-500">Teléfono</label><input id="cfg-telefono" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        <div><label class="text-xs text-gray-500">Dirección</label><input id="cfg-direccion" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+        <div><label class="text-xs text-gray-500">Mensaje en el recibo</label><input id="cfg-mensaje" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="¡Gracias por su visita!"/></div>
+        <button onclick="guardarConfig()" class="w-full bg-green-600 text-white py-2.5 rounded-lg text-sm">Guardar</button>
+        <div id="cfg-ok" class="hidden text-xs text-green-600 text-center">✅ Guardado</div>
+      </div>
+    </div>
+  </div>
 
-    window.confirmarPedido=async(mesaId,mesaNum,editId='')=>{
-      const tipo=document.getElementById('tipo-corriente').classList.contains('border-green-600')?'corriente':'carta';
-      const paraLlevar=document.getElementById('para-llevar').checked;
-      const obs=document.getElementById('observaciones').value.trim();
-      const comp=corrienteData.componentes||{};
-      let items=[],total=0,selecciones={};
-      if(tipo==='corriente'){
-        total+=configNegocio.precioCorriente||0;
-        Object.keys(comp).forEach(k=>{ const chk=[...document.querySelectorAll(`input[name="comp-${k}"]:checked`)].map(c=>c.value); if(chk.length) selecciones[k]=chk; });
-      } else {
-        document.querySelectorAll('.carta-check:checked').forEach(c=>{ items.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1}); total+=parseFloat(c.dataset.precio); });
-        if(!items.length){alert('Selecciona al menos un plato.');return;}
-      }
-      const adicionales=[];
-      document.querySelectorAll('.adic-check:checked').forEach(c=>{ adicionales.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio)}); total+=parseFloat(c.dataset.precio); });
-      if(paraLlevar) total+=configNegocio.precioDesechables||0;
-      const data={mesaId,mesaNumero:mesaNum,tipo,items,selecciones,adicionales,paraLlevar,observaciones:obs,total,estado:'en_cocina',creadoPor:currentProfile.nombre||currentUser.email};
-      if(editId){
-        await updateDoc(doc(db,'pedidos',editId),{...data,editadoEn:serverTimestamp()});
-      } else {
-        data.creadoEn=serverTimestamp();
-        await addDoc(collection(db,'pedidos'),data);
-      }
-      closeModal();
-      imprimirComanda({...data,mesaNumero:mesaNum});
-      setTimeout(()=>{ const mesa=mesasData.find(m=>m.id===mesaId); if(mesa) abrirPanelMesa(mesa); },500);
-    };
+</main>
 
-    function imprimirComanda(p) {
-      const hora=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-      let det='';
-      if(p.tipo==='corriente'){
-        det+=`<div style="font-weight:bold">ALMUERZO CORRIENTE</div>`;
-        Object.entries(p.selecciones||{}).forEach(([k,v])=>{ if(v&&v.length) det+=`<div style="font-size:11px;margin-left:8px">${k}: ${Array.isArray(v)?v.join(' + '):v}</div>`; });
-      } else { (p.items||[]).forEach(i=>{ det+=`<div>${i.cantidad}x ${i.nombre}</div>`; }); }
-      (p.adicionales||[]).forEach(a=>{ det+=`<div style="font-size:11px;margin-left:8px">+ ${a.nombre}</div>`; });
-      if(p.paraLlevar) det+=`<div style="font-weight:bold">⚠️ PARA LLEVAR</div>`;
-      if(p.observaciones) det+=`<div style="font-size:11px;color:#92400e">📝 ${p.observaciones}</div>`;
-      document.getElementById('print-area').innerHTML=`<div style="font-family:monospace;font-size:13px;width:80mm;padding:8px">
-        <div style="text-align:center;font-weight:bold;font-size:18px">MESA ${p.mesaNumero}</div>
-        <div style="text-align:center;font-size:11px">${new Date().toLocaleDateString('es-CO')} ${hora}</div>
-        <div style="text-align:center">${p.paraLlevar?'⚠️ PARA LLEVAR':'Para la mesa'}</div>
-        <div style="border-top:1px dashed #000;margin:6px 0"></div>${det}
-        <div style="border-top:1px dashed #000;margin:6px 0"></div>
-        <div style="font-size:11px">Atendido por: ${p.creadoPor}</div></div>`;
-      document.getElementById('print-area').classList.remove('hidden');
-      window.print();
-      document.getElementById('print-area').classList.add('hidden');
-    }
+<!-- PANEL LATERAL -->
+<div id="panel-lateral">
+  <div class="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
+    <h2 class="font-semibold text-gray-900" id="panel-titulo">Mesa</h2>
+    <button onclick="cerrarPanel()" class="text-gray-400 hover:text-gray-700 text-xl">✕</button>
+  </div>
+  <div id="panel-contenido" class="p-4"></div>
+</div>
+<div id="panel-overlay" class="hidden fixed inset-0 z-30" onclick="cerrarPanel()"></div>
 
-    // ════════════════════════════════════════════════
-    // WIZARD DE COBRO — 3 pasos
-    // ════════════════════════════════════════════════
-    let cobroState={};
+<!-- MODAL -->
+<div id="modal-overlay"><div id="modal-box"></div></div>
 
-    window.abrirPanelCobro=(mesa)=>{
-      if(!mesa?.id) return;
-      const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
-      if(!peds.length){ alert('Esta mesa no tiene pedidos activos.'); return; }
-      const total=peds.reduce((s,p)=>s+(p.total||0),0);
-      cobroState={mesa,peds,total,modo:null,clienteId:null,clienteData:null};
-      document.getElementById('panel-titulo').textContent=`Cobrar — Mesa ${mesa.numero}`;
-      document.getElementById('panel-contenido').innerHTML=renderPaso1();
-      abrirPanel();
-    };
+<!-- NAV MÓVIL -->
+<nav id="mobile-nav"></nav>
 
-    function renderPaso1() {
-      const {peds,total,mesa}=cobroState;
-      let html=`<div class="text-xs text-gray-500 mb-1">Paso 1 de 3 — Resumen</div>
-        <div class="text-2xl font-bold text-green-700 mb-4">${fCOP(total)}</div>
-        <div class="space-y-2 mb-4">`;
-      peds.forEach(p=>{
-        const nombre=p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
-        html+=`<div class="bg-gray-50 rounded-xl p-3">
-          <div class="text-sm font-medium">${nombre}</div>`;
-        (p.adicionales||[]).forEach(a=>{ html+=`<div class="text-xs text-gray-500">+ ${a.nombre} ${fCOP(a.precio)}</div>`; });
-        if(p.paraLlevar) html+=`<div class="text-xs text-gray-500">+ Desechables ${fCOP(configNegocio.precioDesechables)}</div>`;
-        html+=`<div class="text-sm font-medium text-green-700 mt-1">${fCOP(p.total)}</div></div>`;
-      });
-      html+=`</div>
-        <div class="grid grid-cols-2 gap-3">
-          <button onclick="selModoCobro('total')" class="border-2 border-gray-200 rounded-xl py-4 text-sm font-medium hover:border-green-500 hover:bg-green-50 transition-all">
-            💳<br>Cuenta total
-          </button>
-          <button onclick="selModoCobro('separado')" class="border-2 border-gray-200 rounded-xl py-4 text-sm font-medium hover:border-green-500 hover:bg-green-50 transition-all">
-            👥<br>Por persona
-          </button>
+<!-- PRINT -->
+<div id="print-area" class="hidden"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, setDoc, onSnapshot, query, where, orderBy, serverTimestamp, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:"AIzaSyB63aYv7tTWvJoRXUD3A9R_m4OGNXPcUwg",
+  authDomain:"rest-control-a1a56.firebaseapp.com",
+  projectId:"rest-control-a1a56",
+  storageBucket:"rest-control-a1a56.firebasestorage.app",
+  messagingSenderId:"322368325909",
+  appId:"1:322368325909:web:d43c14ff5ef9b744e5c11c"
+};
+const app=initializeApp(firebaseConfig);
+const auth=getAuth(app);
+const db=getFirestore(app);
+
+let currentUser=null,currentProfile=null,configNegocio={};
+let mesasData=[],pedidosData=[],cartaData=[],adicionalesData=[],corrienteData={},gastosData=[],clientesData=[];
+let modoEdicion=false;
+let cobroState={};
+
+const fCOP=v=>new Intl.NumberFormat('es-CO',{style:'currency',currency:'COP',maximumFractionDigits:0}).format(v||0);
+const hoy=()=>new Date().toISOString().split('T')[0];
+const sameDay=(ts,d)=>{if(!ts)return false;const dt=ts.toDate?ts.toDate():new Date(ts);return dt.toISOString().split('T')[0]===d;};
+const sameMon=(ts,y,m)=>{if(!ts)return false;const dt=ts.toDate?ts.toDate():new Date(ts);return dt.getFullYear()===y&&dt.getMonth()===m;};
+const isMobile=()=>window.innerWidth<=768;
+
+// ── AUTH ──────────────────────────────────────────
+onAuthStateChanged(auth,async user=>{
+  if(!user){window.location.href='login.html';return;}
+  currentUser=user;
+  const q=query(collection(db,'usuarios'),where('uid','==',user.uid));
+  const snap=await getDocs(q);
+  currentProfile=snap.empty?{nombre:user.email,rol:'mesero'}:snap.docs[0].data();
+  document.getElementById('user-name').textContent=currentProfile.nombre||user.email;
+  document.getElementById('user-role').textContent=currentProfile.rol||'usuario';
+  buildNav(currentProfile.rol);
+  initListeners();
+  cargarConfig();
+});
+document.getElementById('btn-logout').addEventListener('click',async()=>{await signOut(auth);window.location.href='login.html';});
+
+// ── NAVEGACIÓN ────────────────────────────────────
+function buildNav(rol){
+  const menus={
+    admin:[
+      {id:'plano',icon:'▦',label:'Plano',full:'Plano de mesas'},
+      {id:'pedidos',icon:'📋',label:'Pedidos',full:'Pedidos'},
+      {id:'menu',icon:'🍽',label:'Menú',full:'Menú y precios'},
+      {id:'clientes',icon:'👤',label:'Clientes',full:'Clientes y créditos'},
+      {id:'gastos',icon:'💸',label:'Gastos',full:'Gastos'},
+      {id:'reportes',icon:'📊',label:'Reportes',full:'Reportes'},
+      {id:'usuarios',icon:'👥',label:'Usuarios',full:'Usuarios'},
+      {id:'config',icon:'⚙️',label:'Config',full:'Configuración'},
+    ],
+    cajero:[
+      {id:'plano',icon:'▦',label:'Plano',full:'Plano de mesas'},
+      {id:'pedidos',icon:'📋',label:'Pedidos',full:'Pedidos'},
+      {id:'menu',icon:'🍽',label:'Menú',full:'Menú y precios'},
+      {id:'clientes',icon:'👤',label:'Clientes',full:'Clientes y créditos'},
+      {id:'gastos',icon:'💸',label:'Gastos',full:'Gastos'},
+      {id:'reportes',icon:'📊',label:'Reportes',full:'Reportes'},
+    ],
+    mesero:[
+      {id:'plano',icon:'▦',label:'Plano',full:'Plano de mesas'},
+      {id:'pedidos',icon:'📋',label:'Pedidos',full:'Pedidos'},
+    ]
+  };
+  const items=menus[rol]||menus.mesero;
+  document.getElementById('nav-menu').innerHTML=items.map((m,i)=>
+    `<div class="nav-item${i===0?' active':''}" onclick="showSection('${m.id}',this)" data-section="${m.id}">${m.icon} ${m.full}</div>`
+  ).join('');
+  document.getElementById('mobile-nav').innerHTML=items.map((m,i)=>
+    `<div class="mob-item${i===0?' active':''}" onclick="showSectionMob('${m.id}',this)">
+      <span class="icon">${m.icon}</span><span>${m.label}</span></div>`).join('');
+  if(rol==='admin'){
+    document.getElementById('plano-actions').innerHTML=`
+      <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-3 py-2 rounded-lg">✏️ Editar plano</button>
+      <button id="btn-guardar-pos" onclick="guardarPosiciones()" class="hidden text-sm bg-green-600 text-white px-3 py-2 rounded-lg">💾 Guardar</button>
+      <button onclick="abrirModalCrearMesa()" class="text-sm bg-green-600 text-white px-3 py-2 rounded-lg">+ Mesa</button>`;
+  }
+}
+
+window.showSection=(id,el)=>{
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id)?.classList.add('active');
+  if(el) el.classList.add('active');
+  if(id==='pedidos') renderPedidosModulo();
+};
+window.showSectionMob=(id,el)=>{
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.mob-item,.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+id)?.classList.add('active');
+  if(el) el.classList.add('active');
+  document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
+  if(id==='pedidos') renderPedidosModulo();
+};
+
+// ── LISTENERS ─────────────────────────────────────
+function initListeners(){
+  onSnapshot(collection(db,'mesas'),snap=>{
+    mesasData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPlano();
+  });
+  onSnapshot(query(collection(db,'pedidos'),orderBy('creadoEn','desc')),snap=>{
+    pedidosData=snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderPlano();
+    renderPedidosModulo();
+    renderReportes();
+  });
+  onSnapshot(collection(db,'menu_carta'),snap=>{cartaData=snap.docs.map(d=>({id:d.id,...d.data()}));renderCarta();});
+  onSnapshot(collection(db,'menu_adicionales'),snap=>{adicionalesData=snap.docs.map(d=>({id:d.id,...d.data()}));renderAdicionales();});
+  onSnapshot(doc(db,'menu_corriente','hoy'),snap=>{corrienteData=snap.exists()?snap.data():{componentes:{}};renderCorriente();});
+  onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{gastosData=snap.docs.map(d=>({id:d.id,...d.data()}));renderGastos();renderReportes();});
+  onSnapshot(collection(db,'clientes'),snap=>{clientesData=snap.docs.map(d=>({id:d.id,...d.data()}));renderClientes();});
+  onSnapshot(collection(db,'usuarios'),snap=>{renderUsuarios(snap.docs.map(d=>({id:d.id,...d.data()})));});
+}
+
+// ── CONFIG ────────────────────────────────────────
+async function cargarConfig(){
+  const snap=await getDoc(doc(db,'config','negocio'));
+  configNegocio=snap.exists()?snap.data():{nombre:'Rest-Control',nit:'',telefono:'',direccion:'',mensaje:'¡Gracias por su visita!',precioCorriente:0,precioDesechables:0};
+  document.getElementById('negocio-nombre-sidebar').textContent=configNegocio.nombre||'Rest-Control';
+  ['nombre','nit','telefono','direccion','mensaje'].forEach(k=>{const el=document.getElementById('cfg-'+k);if(el)el.value=configNegocio[k]||'';});
+  document.getElementById('precio-corriente-display').textContent=fCOP(configNegocio.precioCorriente);
+  document.getElementById('precio-desechables-display').textContent=fCOP(configNegocio.precioDesechables);
+}
+window.guardarConfig=async()=>{
+  ['nombre','nit','telefono','direccion','mensaje'].forEach(k=>{configNegocio[k]=document.getElementById('cfg-'+k).value.trim();});
+  await setDoc(doc(db,'config','negocio'),configNegocio);
+  document.getElementById('negocio-nombre-sidebar').textContent=configNegocio.nombre;
+  const ok=document.getElementById('cfg-ok');ok.classList.remove('hidden');setTimeout(()=>ok.classList.add('hidden'),2000);
+};
+window.editarPrecioConfig=(tipo)=>{
+  const labels={corriente:'Precio almuerzo corriente',desechables:'Precio desechables'};
+  const keys={corriente:'precioCorriente',desechables:'precioDesechables'};
+  showModal(`<h3 class="text-base font-semibold mb-4">${labels[tipo]}</h3>
+    <input id="precio-input" type="number" value="${configNegocio[keys[tipo]]||0}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+      <button onclick="guardarPrecioConfig('${keys[tipo]}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+    </div>`);
+};
+window.guardarPrecioConfig=async(key)=>{
+  configNegocio[key]=parseFloat(document.getElementById('precio-input').value)||0;
+  await setDoc(doc(db,'config','negocio'),configNegocio);
+  document.getElementById('precio-corriente-display').textContent=fCOP(configNegocio.precioCorriente);
+  document.getElementById('precio-desechables-display').textContent=fCOP(configNegocio.precioDesechables);
+  closeModal();
+};
+
+// ════════════════════════════════════════════════════
+// PLANO — escalado responsivo para todos los usuarios
+// ════════════════════════════════════════════════════
+function getEscala(){
+  const salon=document.getElementById('plano-salon');
+  const W=salon.offsetWidth||400;
+  const H=salon.offsetHeight||300;
+  const BASE_W=600, BASE_H=500;
+  return {sx:W/BASE_W, sy:H/BASE_H, mesaW:isMobile()?56:72, mesaH:isMobile()?56:72};
+}
+
+function renderPlano(){
+  const salon=document.getElementById('plano-salon');
+  document.getElementById('plano-loading').style.display='none';
+  salon.querySelectorAll('.mesa-plano').forEach(m=>m.remove());
+  if(!mesasData.length){
+    document.getElementById('plano-loading').style.display='flex';
+    document.getElementById('plano-loading').textContent='Sin mesas configuradas.';
+    return;
+  }
+  const {sx,sy,mesaW,mesaH}=getEscala();
+  mesasData.forEach(mesa=>{
+    const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
+    const listos=peds.length&&peds.every(p=>p.estado==='entregado');
+    const estado=mesa.estado==='ocupada'?(listos?'lista':'ocupada'):'libre';
+    const el=document.createElement('div');
+    el.className=`mesa-plano mesa-${estado}`;
+    el.id=`mp-${mesa.id}`;
+    el.style.width=mesaW+'px'; el.style.height=mesaH+'px';
+    el.style.fontSize=isMobile()?'10px':'12px';
+    // Escalar posición
+    const x=Math.max(0,Math.min((mesa.x||50)*sx, salon.offsetWidth-mesaW-4));
+    const y=Math.max(0,Math.min((mesa.y||50)*sy, salon.offsetHeight-mesaH-4));
+    el.style.left=x+'px'; el.style.top=y+'px';
+    const btnElim=modoEdicion&&mesa.estado==='libre'
+      ?`<div onclick="event.stopPropagation();eliminarMesa('${mesa.id}',${mesa.numero})" style="position:absolute;top:2px;right:2px;background:#fee2e2;color:#dc2626;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer">✕</div>`:'';
+    el.innerHTML=`<div style="font-weight:700">${mesa.numero}</div>
+      <div style="font-size:10px">${mesa.estado==='ocupada'?`👤${mesa.personas||0}`:'libre'}</div>
+      <div style="font-size:10px;opacity:0.7">${peds.length?peds.length+'ped':''}</div>${btnElim}`;
+    el.addEventListener('click',()=>handleClickMesa(mesa));
+    if(modoEdicion&&currentProfile?.rol==='admin') makeDraggable(el,mesa.id,sx,sy);
+    salon.appendChild(el);
+  });
+}
+window.addEventListener('resize',()=>renderPlano());
+
+function handleClickMesa(mesa){
+  if(modoEdicion)return;
+  const rol=currentProfile?.rol;
+  if(mesa.estado==='libre'){
+    if(rol==='cajero')return;
+    abrirModalOcuparMesa(mesa);
+  } else {
+    if(rol==='cajero') abrirPanelCobro(mesa);
+    else abrirPanelMesa(mesa);
+  }
+}
+
+function makeDraggable(el,mesaId,sx,sy){
+  let ox,oy,ol,ot; el.style.cursor='grab';
+  const move=(cx,cy)=>{
+    const salon=document.getElementById('plano-salon');
+    const {mesaW,mesaH}=getEscala();
+    const nx=Math.max(0,Math.min(ol+(cx-ox),salon.offsetWidth-mesaW-4));
+    const ny=Math.max(0,Math.min(ot+(cy-oy),salon.offsetHeight-mesaH-4));
+    el.style.left=nx+'px'; el.style.top=ny+'px';
+  };
+  el.addEventListener('mousedown',e=>{
+    e.preventDefault(); ox=e.clientX; oy=e.clientY; ol=parseInt(el.style.left)||0; ot=parseInt(el.style.top)||0;
+    el.classList.add('mesa-drag'); el.style.cursor='grabbing';
+    const mv=ev=>move(ev.clientX,ev.clientY);
+    const up=()=>{el.classList.remove('mesa-drag');el.style.cursor='grab';document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+  });
+  el.addEventListener('touchstart',e=>{
+    const t=e.touches[0]; ox=t.clientX; oy=t.clientY; ol=parseInt(el.style.left)||0; ot=parseInt(el.style.top)||0;
+    el.classList.add('mesa-drag');
+    const mv=ev=>{ev.preventDefault();const tc=ev.touches[0];move(tc.clientX,tc.clientY);};
+    const up=()=>{el.classList.remove('mesa-drag');document.removeEventListener('touchmove',mv);document.removeEventListener('touchend',up);};
+    document.addEventListener('touchmove',mv,{passive:false}); document.addEventListener('touchend',up);
+  });
+}
+
+window.toggleModoEdicion=()=>{
+  modoEdicion=!modoEdicion;
+  document.getElementById('btn-modo-edicion').textContent=modoEdicion?'✕ Cancelar':'✏️ Editar plano';
+  document.getElementById('btn-guardar-pos').classList.toggle('hidden',!modoEdicion);
+  document.getElementById('modo-edicion-info').classList.toggle('hidden',!modoEdicion);
+  renderPlano();
+};
+window.guardarPosiciones=async()=>{
+  const salon=document.getElementById('plano-salon');
+  const {sx,sy}=getEscala();
+  const BASE_W=600,BASE_H=500;
+  await Promise.all(mesasData.map(m=>{
+    const el=salon.querySelector(`#mp-${m.id}`); if(!el)return;
+    // Guardar posición en coordenadas base (600x500)
+    const x=Math.round((parseInt(el.style.left)||0)/(sx||1));
+    const y=Math.round((parseInt(el.style.top)||0)/(sy||1));
+    return updateDoc(doc(db,'mesas',m.id),{x,y});
+  }).filter(Boolean));
+  modoEdicion=false;
+  document.getElementById('btn-modo-edicion').textContent='✏️ Editar plano';
+  document.getElementById('btn-guardar-pos').classList.add('hidden');
+  document.getElementById('modo-edicion-info').classList.add('hidden');
+  renderPlano();
+};
+window.eliminarMesa=async(id,num)=>{if(!confirm(`¿Eliminar Mesa ${num}?`))return;await deleteDoc(doc(db,'mesas',id));};
+window.abrirModalCrearMesa=()=>{
+  const next=mesasData.length?Math.max(...mesasData.map(m=>m.numero||0))+1:1;
+  showModal(`<h3 class="text-base font-semibold mb-4">Nueva mesa</h3>
+    <div class="space-y-3">
+      <div><label class="text-xs text-gray-500">Número</label><input id="nm-num" type="number" value="${next}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+      <div><label class="text-xs text-gray-500">Capacidad</label><input id="nm-cap" type="number" value="4" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    </div>
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+      <button onclick="crearMesa()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear</button>
+    </div>`);
+};
+window.crearMesa=async()=>{
+  const num=parseInt(document.getElementById('nm-num').value);if(!num){alert('Ingresa un número.');return;}
+  const idx=mesasData.length;
+  const x=50+(idx%5)*110; const y=50+Math.floor(idx/5)*110;
+  await addDoc(collection(db,'mesas'),{numero:num,capacidad:parseInt(document.getElementById('nm-cap').value)||4,estado:'libre',personas:0,x,y});
+  closeModal();
+};
+
+// ── Abrir mesa ────────────────────────────────────
+window.abrirModalOcuparMesa=(mesa)=>{
+  showModal(`<h3 class="text-base font-semibold mb-4">Abrir Mesa ${mesa.numero}</h3>
+    <div><label class="text-xs text-gray-500">Número de personas</label>
+      <input id="personas-input" type="number" min="1" value="1" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+      <button onclick="ocuparMesa('${mesa.id}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Abrir</button>
+    </div>`);
+};
+window.ocuparMesa=async(mesaId)=>{
+  const p=parseInt(document.getElementById('personas-input').value)||1;
+  await updateDoc(doc(db,'mesas',mesaId),{estado:'ocupada',personas:p,ocupadaEn:serverTimestamp()});
+  closeModal();
+};
+
+// ════════════════════════════════════════════════════
+// PANEL DE MESA (mesero y admin abren desde plano)
+// ════════════════════════════════════════════════════
+window.abrirPanelMesa=(mesa)=>{
+  const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
+  const total=peds.reduce((s,p)=>s+(p.total||0),0);
+  const rol=currentProfile?.rol;
+  document.getElementById('panel-titulo').textContent=`Mesa ${mesa.numero} — ${mesa.personas} persona${mesa.personas>1?'s':''}`;
+  let html=`<div class="mb-4 flex justify-between items-center">
+    <div><div class="text-xs text-gray-500">Total acumulado</div><div class="text-2xl font-bold text-green-700">${fCOP(total)}</div></div>
+    <button onclick="abrirFormPedido('${mesa.id}',${mesa.numero})" class="text-sm bg-green-600 text-white px-4 py-2 rounded-xl">+ Pedido</button>
+  </div>`;
+  if(peds.length){
+    peds.forEach(p=>{
+      const nombre=p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
+      const cEst=p.estado==='entregado'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-700';
+      const puedeEditar=rol==='admin'||rol==='cajero'||(rol==='mesero'&&p.creadoPor===currentProfile.nombre);
+      const puedeEliminar=rol==='admin'||rol==='cajero';
+      html+=`<div class="bg-gray-50 rounded-xl p-3 mb-2">
+        <div class="flex justify-between items-start mb-1">
+          <div class="text-sm font-medium flex-1">${nombre}</div>
+          <span class="badge ${cEst} ml-2">${p.estado==='entregado'?'Entregado':'En cocina'}</span>
         </div>`;
-      return html;
-    }
+      if(p.tipo==='corriente'&&p.selecciones) Object.entries(p.selecciones).forEach(([k,v])=>{if(v&&v.length)html+=`<div class="text-xs text-gray-500">${k}: ${Array.isArray(v)?v.join(' + '):v}</div>`;});
+      else (p.items||[]).forEach(i=>{html+=`<div class="text-xs text-gray-500">${i.cantidad}x ${i.nombre}</div>`;});
+      (p.adicionales||[]).forEach(a=>{html+=`<div class="text-xs text-gray-500">+ ${a.nombre}</div>`;});
+      if(p.paraLlevar)html+=`<div class="text-xs text-blue-600">🛍 Para llevar</div>`;
+      if(p.observaciones)html+=`<div class="text-xs text-amber-600">📝 ${p.observaciones}</div>`;
+      html+=`<div class="flex justify-between items-center mt-2">
+        <span class="text-sm font-medium text-green-700">${fCOP(p.total)}</span>
+        <div class="flex gap-1">
+          ${p.estado==='en_cocina'?`<button onclick="marcarEntregado('${p.id}','${mesa.id}')" class="text-xs bg-green-600 text-white px-2 py-1 rounded-lg">✓ Entregar</button>`:''}
+          ${puedeEditar?`<button onclick="abrirFormPedido('${mesa.id}',${mesa.numero},'${p.id}')" class="text-xs border border-gray-200 px-2 py-1 rounded-lg">Editar</button>`:''}
+          ${puedeEliminar?`<button onclick="eliminarPedido('${p.id}','${mesa.id}')" class="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg">✕</button>`:''}
+        </div>
+      </div></div>`;
+    });
+  } else {
+    html+=`<div class="text-sm text-gray-400 text-center py-4">Sin pedidos. Agrega el primero.</div>`;
+  }
+  document.getElementById('panel-contenido').innerHTML=html;
+  abrirPanel();
+};
 
-    window.selModoCobro=(modo)=>{
-      cobroState.modo=modo;
-      if(modo==='separado'){
-        const personas=cobroState.mesa.personas||2;
-        cobroState.asignaciones=Array.from({length:personas},(_,i)=>({persona:i+1,peds:[],metodo:'efectivo',clienteId:null,clienteData:null}));
-      }
-      document.getElementById('panel-contenido').innerHTML=renderPaso2();
-    };
+window.marcarEntregado=async(pedidoId,mesaId)=>{
+  await updateDoc(doc(db,'pedidos',pedidoId),{estado:'entregado',entregadoEn:serverTimestamp()});
+  setTimeout(()=>{const m=mesasData.find(x=>x.id===mesaId);if(m)abrirPanelMesa(m);},300);
+};
+window.eliminarPedido=async(pedidoId,mesaId)=>{
+  if(!confirm('¿Eliminar este pedido?'))return;
+  await deleteDoc(doc(db,'pedidos',pedidoId));
+  setTimeout(()=>{const m=mesasData.find(x=>x.id===mesaId);if(m)abrirPanelMesa(m);},300);
+};
 
-    function renderPaso2() {
-      const {modo,peds,mesa}=cobroState;
-      let html=`<div class="text-xs text-gray-500 mb-4">Paso 2 de 3 — Datos del cliente (opcional)</div>`;
-      html+=`<div class="mb-3">
-        <label class="text-xs font-medium text-gray-600">Buscar cliente existente</label>
-        <input id="buscar-cobro" type="text" placeholder="Nombre o cédula..." oninput="buscarClienteCobro()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/>
-        <div id="resultados-cobro" class="mt-1 space-y-1 max-h-32 overflow-y-auto"></div>
-      </div>
-      <div id="cliente-seleccionado-cobro" class="hidden bg-green-50 border border-green-200 rounded-xl p-3 mb-3">
-        <div class="flex justify-between items-center">
-          <div><div class="text-sm font-medium" id="cli-nombre-cobro"></div>
-          <div class="text-xs text-gray-500" id="cli-doc-cobro"></div></div>
-          <button onclick="quitarClienteCobro()" class="text-xs text-red-400">✕ Quitar</button>
+// ════════════════════════════════════════════════════
+// MÓDULO PEDIDOS (lista para mesero/cajero/admin)
+// ════════════════════════════════════════════════════
+function renderPedidosModulo(){
+  const rol=currentProfile?.rol;
+  const el=document.getElementById('sec-pedidos-contenido');
+  if(!el)return;
+  let peds=pedidosData.filter(p=>!['pagado','cancelado'].includes(p.estado));
+  if(rol==='mesero') peds=peds.filter(p=>p.creadoPor===currentProfile.nombre);
+  const mesasOcupadas=[...new Set(peds.map(p=>p.mesaId))];
+  if(!peds.length){el.innerHTML='<div class="text-sm text-gray-400 text-center py-8">Sin pedidos activos.</div>';return;}
+  let html='<div class="space-y-4">';
+  mesasOcupadas.forEach(mesaId=>{
+    const mesa=mesasData.find(m=>m.id===mesaId);
+    const pedsMesa=peds.filter(p=>p.mesaId===mesaId);
+    const totalMesa=pedsMesa.reduce((s,p)=>s+(p.total||0),0);
+    html+=`<div class="bg-white border border-gray-100 rounded-xl overflow-hidden">
+      <div class="flex justify-between items-center px-4 py-3 bg-gray-50 border-b border-gray-100">
+        <span class="font-semibold text-gray-800">Mesa ${mesa?.numero||'?'} — ${mesa?.personas||0} personas</span>
+        <div class="flex items-center gap-2">
+          <span class="text-sm font-bold text-green-700">${fCOP(totalMesa)}</span>
+          <button onclick="abrirFormPedido('${mesaId}',${mesa?.numero||0})" class="text-xs bg-green-600 text-white px-3 py-1 rounded-lg">+ Pedido</button>
+        </div>
+      </div>`;
+    pedsMesa.forEach(p=>{
+      const nombre=p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
+      const cEst=p.estado==='entregado'?'bg-green-100 text-green-800':'bg-amber-100 text-amber-700';
+      const puedeEditar=rol==='admin'||rol==='cajero'||(rol==='mesero'&&p.creadoPor===currentProfile.nombre);
+      const puedeEliminar=rol==='admin'||rol==='cajero';
+      html+=`<div class="px-4 py-3 border-b border-gray-50">
+        <div class="flex justify-between items-start">
+          <div class="flex-1">
+            <div class="text-sm font-medium">${nombre}</div>`;
+      if(p.tipo==='corriente'&&p.selecciones) Object.entries(p.selecciones).forEach(([k,v])=>{if(v&&v.length)html+=`<div class="text-xs text-gray-400">${k}: ${Array.isArray(v)?v.join('+'):v}</div>`;});
+      (p.adicionales||[]).forEach(a=>{html+=`<div class="text-xs text-gray-400">+ ${a.nombre}</div>`;});
+      if(p.observaciones)html+=`<div class="text-xs text-amber-600">📝 ${p.observaciones}</div>`;
+      html+=`<div class="text-sm font-medium text-green-700 mt-1">${fCOP(p.total)}</div>
+          </div>
+          <div class="flex flex-col items-end gap-1 ml-2">
+            <span class="badge ${cEst}">${p.estado==='entregado'?'Entregado':'En cocina'}</span>
+            <div class="flex gap-1 mt-1">
+              ${p.estado==='en_cocina'?`<button onclick="marcarEntregado('${p.id}','${mesaId}')" class="text-xs bg-green-600 text-white px-2 py-1 rounded-lg">✓</button>`:''}
+              ${puedeEditar?`<button onclick="abrirFormPedido('${mesaId}',${mesa?.numero||0},'${p.id}')" class="text-xs border border-gray-200 px-2 py-1 rounded-lg">✏️</button>`:''}
+              ${puedeEliminar?`<button onclick="eliminarPedidoModulo('${p.id}')" class="text-xs text-red-400 border border-red-200 px-2 py-1 rounded-lg">✕</button>`:''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+    });
+    html+=`</div>`;
+  });
+  html+='</div>';
+  el.innerHTML=html;
+}
+
+window.eliminarPedidoModulo=async(pedidoId)=>{
+  if(!confirm('¿Eliminar este pedido?'))return;
+  await deleteDoc(doc(db,'pedidos',pedidoId));
+};
+
+// ════════════════════════════════════════════════════
+// FORMULARIO DE PEDIDO
+// ════════════════════════════════════════════════════
+window.abrirFormPedido=(mesaId,mesaNum,editId='')=>{
+  cerrarPanel();
+  const pedEdit=editId?pedidosData.find(p=>p.id===editId):null;
+  const cartaDisp=cartaData.filter(p=>p.activo);
+  const adicsDisp=adicionalesData.filter(a=>a.activo);
+  const comp=corrienteData.componentes||{};
+  let htmlComp='';
+  Object.keys(comp).forEach(k=>{
+    const ops=comp[k].filter(o=>o.activo);if(!ops.length)return;
+    const prev=pedEdit?.selecciones?.[k]||[];
+    htmlComp+=`<div class="mb-2"><label class="text-xs font-semibold text-gray-600 uppercase">${k}</label>
+      <div class="flex flex-wrap gap-2 mt-1">${ops.map(o=>`
+        <label class="flex items-center gap-1.5 cursor-pointer bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-green-400 text-sm">
+          <input type="checkbox" name="comp-${k}" value="${o.nombre}" ${Array.isArray(prev)&&prev.includes(o.nombre)?'checked':''} class="accent-green-600"/>${o.nombre}</label>`).join('')}
+      </div></div>`;
+  });
+  const esCorriente=!pedEdit||pedEdit.tipo==='corriente';
+  showModal(`
+    <h3 class="text-base font-semibold mb-3">${pedEdit?'Editar':'Nuevo'} pedido — Mesa ${mesaNum}</h3>
+    <div class="space-y-3">
+      <div>
+        <label class="text-xs font-medium text-gray-600">Tipo</label>
+        <div class="grid grid-cols-2 gap-2 mt-1">
+          <button onclick="selTipo('corriente',this)" id="tipo-corriente" class="tipo-btn border-2 ${esCorriente?'border-green-600 bg-green-50 text-green-800':'border-gray-200 text-gray-600'} rounded-lg py-2 text-sm">🍽 Corriente</button>
+          <button onclick="selTipo('carta',this)" id="tipo-carta" class="tipo-btn border-2 ${!esCorriente?'border-green-600 bg-green-50 text-green-800':'border-gray-200 text-gray-600'} rounded-lg py-2 text-sm">🍴 A la carta</button>
         </div>
       </div>
-      <button onclick="abrirCrearClienteRapido()" class="w-full border border-dashed border-gray-300 rounded-xl py-2.5 text-sm text-gray-500 hover:border-green-400 hover:text-green-600 mb-4">+ Crear cliente nuevo</button>
+      <div id="form-corriente" class="${!esCorriente?'hidden':''} bg-gray-50 rounded-xl p-3">
+        ${htmlComp||'<p class="text-xs text-gray-400">Sin componentes configurados.</p>'}
+      </div>
+      <div id="form-carta" class="${esCorriente?'hidden':''} space-y-1 max-h-40 overflow-y-auto bg-gray-50 rounded-xl p-3">
+        ${cartaDisp.map(p=>`
+          <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-white rounded px-1 text-sm">
+            <input type="checkbox" value="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" class="carta-check accent-green-600" ${(pedEdit?.items||[]).some(i=>i.id===p.id)?'checked':''}/>
+            <span class="flex-1">${p.nombre}</span><span class="text-green-700 font-medium">${fCOP(p.precio)}</span></label>`).join('')||'<p class="text-xs text-gray-400">Sin platos.</p>'}
+      </div>
+      ${adicsDisp.length?`<div>
+        <label class="text-xs font-semibold text-gray-600 uppercase">Adicionales</label>
+        <div class="space-y-1 mt-1 max-h-28 overflow-y-auto bg-gray-50 rounded-xl p-3">
+          ${adicsDisp.map(a=>`
+            <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-white rounded px-1 text-sm">
+              <input type="checkbox" value="${a.id}" data-nombre="${a.nombre}" data-precio="${a.precio}" class="adic-check accent-green-600" ${(pedEdit?.adicionales||[]).some(x=>x.id===a.id)?'checked':''}/>
+              <span class="flex-1">${a.nombre}</span><span class="text-green-700 font-medium">${fCOP(a.precio)}</span></label>`).join('')}
+        </div></div>`:''}
+      <div class="flex items-center gap-2">
+        <input type="checkbox" id="para-llevar" class="accent-green-600" ${pedEdit?.paraLlevar?'checked':''}/>
+        <label class="text-sm text-gray-600">Para llevar <span class="text-green-700">(+${fCOP(configNegocio.precioDesechables)})</span></label>
+      </div>
+      <div><label class="text-xs font-medium text-gray-600">Observaciones</label>
+        <textarea id="observaciones" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 resize-none" placeholder="Sin cebolla...">${pedEdit?.observaciones||''}</textarea></div>
+    </div>
+    <div class="flex gap-2 mt-4">
+      <button onclick="closeModal()" class="flex-1 text-sm px-4 py-2.5 border border-gray-200 rounded-lg">Cancelar</button>
+      <button onclick="confirmarPedido('${mesaId}',${mesaNum},'${editId}')" class="flex-1 text-sm px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium">✓ Confirmar e imprimir 🖨</button>
+    </div>`);
+};
+
+window.selTipo=(tipo,el)=>{
+  document.querySelectorAll('.tipo-btn').forEach(b=>{b.className='tipo-btn border-2 border-gray-200 text-gray-600 rounded-lg py-2 text-sm';});
+  el.className='tipo-btn border-2 border-green-600 bg-green-50 text-green-800 rounded-lg py-2 text-sm';
+  document.getElementById('form-corriente').classList.toggle('hidden',tipo==='carta');
+  document.getElementById('form-carta').classList.toggle('hidden',tipo==='corriente');
+};
+
+window.confirmarPedido=async(mesaId,mesaNum,editId='')=>{
+  const tipo=document.getElementById('tipo-corriente').classList.contains('border-green-600')?'corriente':'carta';
+  const paraLlevar=document.getElementById('para-llevar').checked;
+  const obs=document.getElementById('observaciones').value.trim();
+  const comp=corrienteData.componentes||{};
+  let items=[],total=0,selecciones={};
+  if(tipo==='corriente'){
+    total+=configNegocio.precioCorriente||0;
+    Object.keys(comp).forEach(k=>{const chk=[...document.querySelectorAll(`input[name="comp-${k}"]:checked`)].map(c=>c.value);if(chk.length)selecciones[k]=chk;});
+  } else {
+    document.querySelectorAll('.carta-check:checked').forEach(c=>{items.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1});total+=parseFloat(c.dataset.precio);});
+    if(!items.length){alert('Selecciona al menos un plato.');return;}
+  }
+  const adicionales=[];
+  document.querySelectorAll('.adic-check:checked').forEach(c=>{adicionales.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio)});total+=parseFloat(c.dataset.precio);});
+  if(paraLlevar)total+=configNegocio.precioDesechables||0;
+  const data={mesaId,mesaNumero:mesaNum,tipo,items,selecciones,adicionales,paraLlevar,observaciones:obs,total,estado:'en_cocina',creadoPor:currentProfile.nombre||currentUser.email};
+  if(editId){await updateDoc(doc(db,'pedidos',editId),{...data,editadoEn:serverTimestamp()});}
+  else{data.creadoEn=serverTimestamp();await addDoc(collection(db,'pedidos'),data);}
+  closeModal();
+  // Imprimir ticket por MESA (todos los pedidos de la mesa)
+  const todosPedsMesa=pedidosData.filter(p=>p.mesaId===mesaId&&!['pagado','cancelado'].includes(p.estado));
+  const nuevosPeds=editId?todosPedsMesa:[...todosPedsMesa,{...data,id:'nuevo'}];
+  imprimirComandaMesa(mesaNum,nuevosPeds);
+};
+
+function imprimirComandaMesa(mesaNum,peds){
+  const hora=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  let det='';
+  peds.forEach((p,i)=>{
+    if(peds.length>1)det+=`<div style="font-size:11px;font-weight:bold;margin-top:6px">— Pedido ${i+1} —</div>`;
+    if(p.tipo==='corriente'){
+      det+=`<div style="font-weight:bold">ALMUERZO CORRIENTE</div>`;
+      Object.entries(p.selecciones||{}).forEach(([k,v])=>{if(v&&v.length)det+=`<div style="font-size:11px;margin-left:8px">${k}: ${Array.isArray(v)?v.join(' + '):v}</div>`;});
+    } else {(p.items||[]).forEach(i=>{det+=`<div>${i.cantidad}x ${i.nombre}</div>`;});}
+    (p.adicionales||[]).forEach(a=>{det+=`<div style="font-size:11px;margin-left:8px">+ ${a.nombre}</div>`;});
+    if(p.paraLlevar)det+=`<div style="font-weight:bold">⚠️ PARA LLEVAR</div>`;
+    if(p.observaciones)det+=`<div style="font-size:11px;color:#92400e">📝 ${p.observaciones}</div>`;
+  });
+  document.getElementById('print-area').innerHTML=`<div style="font-family:monospace;font-size:13px;width:80mm;padding:8px">
+    <div style="text-align:center;font-weight:bold;font-size:20px">MESA ${mesaNum}</div>
+    <div style="text-align:center;font-size:11px">${new Date().toLocaleDateString('es-CO')} ${hora}</div>
+    <div style="border-top:1px dashed #000;margin:6px 0"></div>
+    ${det}
+    <div style="border-top:1px dashed #000;margin:6px 0"></div>
+    <div style="font-size:11px">Mesero: ${currentProfile?.nombre||''}</div>
+  </div>`;
+  document.getElementById('print-area').classList.remove('hidden');
+  window.print();
+  document.getElementById('print-area').classList.add('hidden');
+}
+
+// ════════════════════════════════════════════════════
+// WIZARD COBRO — 3 pasos
+// ════════════════════════════════════════════════════
+window.abrirPanelCobro=(mesa)=>{
+  if(!mesa?.id)return;
+  const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
+  if(!peds.length){alert('Sin pedidos activos.');return;}
+  cobroState={mesa,peds,total:peds.reduce((s,p)=>s+(p.total||0),0),modo:null,clienteId:null,clienteData:null,metodoTotal:'efectivo'};
+  document.getElementById('panel-titulo').textContent=`Cobrar — Mesa ${mesa.numero}`;
+  document.getElementById('panel-contenido').innerHTML=renderPaso1Cobro();
+  abrirPanel();
+};
+
+function renderPaso1Cobro(){
+  const {peds,total}=cobroState;
+  let html=`<div class="text-xs font-medium text-gray-400 mb-3">PASO 1 DE 3 — RESUMEN</div>
+    <div class="text-2xl font-bold text-green-700 mb-4">${fCOP(total)}</div>
+    <div class="space-y-2 mb-5">`;
+  peds.forEach(p=>{
+    const nombre=p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
+    html+=`<div class="bg-gray-50 rounded-xl p-3"><div class="text-sm font-medium">${nombre}</div>`;
+    (p.adicionales||[]).forEach(a=>{html+=`<div class="text-xs text-gray-500">+ ${a.nombre} ${fCOP(a.precio)}</div>`;});
+    if(p.paraLlevar)html+=`<div class="text-xs text-gray-500">+ Desechables ${fCOP(configNegocio.precioDesechables)}</div>`;
+    html+=`<div class="text-sm font-medium text-green-700 mt-1">${fCOP(p.total)}</div></div>`;
+  });
+  html+=`</div>
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="selModoCobro('total')" class="border-2 border-gray-200 rounded-xl py-4 text-sm font-medium hover:border-green-500 hover:bg-green-50 transition-all text-center">
+        💳<br><span class="text-xs mt-1 block">Cuenta total</span></button>
+      <button onclick="selModoCobro('separado')" class="border-2 border-gray-200 rounded-xl py-4 text-sm font-medium hover:border-green-500 hover:bg-green-50 transition-all text-center">
+        👥<br><span class="text-xs mt-1 block">Por persona</span></button>
+    </div>`;
+  return html;
+}
+
+window.selModoCobro=(modo)=>{cobroState.modo=modo;document.getElementById('panel-contenido').innerHTML=renderPaso2Cobro();};
+
+function renderPaso2Cobro(){
+  return `<div class="text-xs font-medium text-gray-400 mb-3">PASO 2 DE 3 — DATOS DEL CLIENTE (opcional)</div>
+    <div class="mb-3">
+      <label class="text-xs font-medium text-gray-600">Buscar cliente</label>
+      <input id="buscar-cobro" type="text" placeholder="Nombre o cédula..." oninput="buscarClienteCobro()" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/>
+      <div id="resultados-cobro" class="mt-1 space-y-1 max-h-28 overflow-y-auto"></div>
+    </div>
+    <div id="cliente-sel-cobro" class="hidden bg-green-50 border border-green-200 rounded-xl p-3 mb-3">
+      <div class="flex justify-between items-center">
+        <div><div class="text-sm font-medium" id="cli-nom-cobro"></div><div class="text-xs text-gray-500" id="cli-doc-cobro"></div></div>
+        <button onclick="quitarClienteCobro()" class="text-xs text-red-400">✕</button>
+      </div>
+    </div>
+    <button onclick="abrirCrearClienteRapido()" class="w-full border border-dashed border-gray-300 rounded-xl py-2.5 text-sm text-gray-500 hover:border-green-400 hover:text-green-600 mb-4">+ Crear cliente nuevo</button>
+    <div class="grid grid-cols-2 gap-3">
+      <button onclick="document.getElementById('panel-contenido').innerHTML=renderPaso1Cobro()" class="border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600">← Volver</button>
+      <button onclick="document.getElementById('panel-contenido').innerHTML=renderPaso3Cobro()" class="bg-green-600 text-white rounded-xl py-2.5 text-sm font-medium">Continuar →</button>
+    </div>`;
+}
+
+window.buscarClienteCobro=()=>{
+  const q=document.getElementById('buscar-cobro').value.toLowerCase().trim();
+  const res=document.getElementById('resultados-cobro');
+  if(!q){res.innerHTML='';return;}
+  const found=clientesData.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).slice(0,5);
+  res.innerHTML=found.map(c=>`<div onclick="selClienteCobro('${c.id}')" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm cursor-pointer hover:border-green-400">
+    <span class="font-medium">${c.nombre}</span> <span class="text-gray-400 text-xs">${c.documento||''}</span></div>`).join('')||
+    '<div class="text-xs text-gray-400 px-1">No encontrado</div>';
+};
+window.selClienteCobro=(id)=>{
+  const c=clientesData.find(x=>x.id===id);if(!c)return;
+  cobroState.clienteId=id;cobroState.clienteData=c;
+  document.getElementById('cli-nom-cobro').textContent=c.nombre;
+  document.getElementById('cli-doc-cobro').textContent=c.documento||c.telefono||'';
+  document.getElementById('cliente-sel-cobro').classList.remove('hidden');
+  document.getElementById('buscar-cobro').value='';
+  document.getElementById('resultados-cobro').innerHTML='';
+};
+window.quitarClienteCobro=()=>{cobroState.clienteId=null;cobroState.clienteData=null;document.getElementById('cliente-sel-cobro').classList.add('hidden');};
+window.abrirCrearClienteRapido=()=>{
+  showModal(`<h3 class="text-base font-semibold mb-4">Crear cliente</h3>
+    <div class="space-y-3">
+      <div><label class="text-xs text-gray-500">Nombre *</label><input id="nc-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+      <div><label class="text-xs text-gray-500">Cédula / NIT</label><input id="nc-doc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+      <div><label class="text-xs text-gray-500">Teléfono</label><input id="nc-tel" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    </div>
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+      <button onclick="crearClienteRapido()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear y seleccionar</button>
+    </div>`);
+};
+window.crearClienteRapido=async()=>{
+  const nombre=document.getElementById('nc-nombre').value.trim();if(!nombre){alert('Nombre obligatorio.');return;}
+  const ref=await addDoc(collection(db,'clientes'),{nombre,documento:document.getElementById('nc-doc').value.trim(),telefono:document.getElementById('nc-tel').value.trim(),saldoPendiente:0,creadoEn:serverTimestamp()});
+  closeModal();setTimeout(()=>selClienteCobro(ref.id),400);
+};
+
+function renderPaso3Cobro(){
+  const {modo,total,mesa}=cobroState;
+  const metodos=[{v:'efectivo',l:'💵 Efectivo'},{v:'nequi',l:'📱 Nequi'},{v:'daviplata',l:'💳 Daviplata'},{v:'credito',l:'🤝 A crédito'}];
+  if(modo==='total'){
+    return `<div class="text-xs font-medium text-gray-400 mb-3">PASO 3 DE 3 — MÉTODO DE PAGO</div>
+      <div class="text-2xl font-bold text-green-700 mb-4">${fCOP(total)}</div>
+      ${cobroState.clienteData?`<div class="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 text-sm font-medium">👤 ${cobroState.clienteData.nombre}</div>`:''}
+      <div class="grid grid-cols-2 gap-3 mb-4">
+        ${metodos.map((m,i)=>`<button onclick="selMetodoCobro('${m.v}',this)" class="metodo-btn ${i===0?'selected':''}">${m.l}</button>`).join('')}
+      </div>
+      <div id="aviso-credito" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-xs text-amber-700">
+        ⚠️ Venta a crédito — no suma al cierre de caja. Requiere cliente seleccionado.
+      </div>
       <div class="grid grid-cols-2 gap-3">
-        <button onclick="irPaso1()" class="border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600">← Volver</button>
-        <button onclick="irPaso3()" class="bg-green-600 text-white rounded-xl py-2.5 text-sm font-medium">Continuar →</button>
+        <button onclick="document.getElementById('panel-contenido').innerHTML=renderPaso2Cobro()" class="border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600">← Volver</button>
+        <button onclick="procesarCobroTotal()" class="bg-green-600 text-white rounded-xl py-2.5 text-sm font-medium">✓ Confirmar y recibo</button>
       </div>`;
-      return html;
-    }
-
-    window.buscarClienteCobro=()=>{
-      const q=document.getElementById('buscar-cobro').value.toLowerCase().trim();
-      const res=document.getElementById('resultados-cobro');
-      if(!q){ res.innerHTML=''; return; }
-      const found=clientesData.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.documento||'').includes(q)).slice(0,5);
-      res.innerHTML=found.map(c=>`<div onclick="selClienteCobro('${c.id}')" class="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm cursor-pointer hover:border-green-400">
-        <span class="font-medium">${c.nombre}</span> <span class="text-gray-400 text-xs">${c.documento||''}</span></div>`).join('')||
-        '<div class="text-xs text-gray-400 px-1">No encontrado</div>';
-    };
-
-    window.selClienteCobro=(clienteId)=>{
-      const c=clientesData.find(x=>x.id===clienteId); if(!c) return;
-      cobroState.clienteId=clienteId; cobroState.clienteData=c;
-      document.getElementById('cli-nombre-cobro').textContent=c.nombre;
-      document.getElementById('cli-doc-cobro').textContent=c.documento||c.telefono||'';
-      document.getElementById('cliente-seleccionado-cobro').classList.remove('hidden');
-      document.getElementById('buscar-cobro').value='';
-      document.getElementById('resultados-cobro').innerHTML='';
-    };
-
-    window.quitarClienteCobro=()=>{ cobroState.clienteId=null; cobroState.clienteData=null; document.getElementById('cliente-seleccionado-cobro').classList.add('hidden'); };
-
-    window.abrirCrearClienteRapido=()=>{
-      showModal(`<h3 class="text-base font-semibold mb-4">Crear cliente</h3>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Nombre *</label><input id="nc-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Nombre completo"/></div>
-          <div><label class="text-xs text-gray-500">Cédula / NIT</label><input id="nc-doc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="1234567890"/></div>
-          <div><label class="text-xs text-gray-500">Teléfono</label><input id="nc-tel" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="3001234567"/></div>
+  } else {
+    const personas=mesa.personas||2;
+    const {peds}=cobroState;
+    let html=`<div class="text-xs font-medium text-gray-400 mb-3">PASO 3 DE 3 — PAGO POR PERSONA</div><div class="space-y-4">`;
+    for(let i=1;i<=personas;i++){
+      html+=`<div class="bg-gray-50 rounded-xl p-3">
+        <div class="text-sm font-semibold mb-2">👤 Persona ${i}</div>
+        <div class="text-xs text-gray-500 mb-1">Pedidos:</div>
+        ${peds.map(p=>`<label class="flex items-center gap-2 text-xs mb-1 cursor-pointer">
+          <input type="checkbox" class="ped-pers accent-green-600" data-persona="${i}" data-pedid="${p.id}" data-total="${p.total}" ${i===1?'checked':''}/>
+          ${p.tipo==='corriente'?'Corriente':(p.items||[]).map(x=>x.nombre).join(',')} — ${fCOP(p.total)}</label>`).join('')}
+        <div class="mt-2 grid grid-cols-2 gap-1">
+          ${metodos.map((m,mi)=>`<button onclick="selMetodoPersona('${m.v}',this,${i})" class="metodo-btn text-xs ${mi===0?'selected':''}" data-persona="${i}">${m.l}</button>`).join('')}
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="crearClienteRapido()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear y seleccionar</button>
-        </div>`);
-    };
-
-    window.crearClienteRapido=async()=>{
-      const nombre=document.getElementById('nc-nombre').value.trim();
-      if(!nombre){alert('El nombre es obligatorio.');return;}
-      const ref=await addDoc(collection(db,'clientes'),{nombre,documento:document.getElementById('nc-doc').value.trim(),telefono:document.getElementById('nc-tel').value.trim(),saldoPendiente:0,creadoEn:serverTimestamp()});
-      closeModal();
-      setTimeout(()=>selClienteCobro(ref.id),300);
-    };
-
-    window.irPaso1=()=>{ document.getElementById('panel-contenido').innerHTML=renderPaso1(); };
-    window.irPaso3=()=>{ document.getElementById('panel-contenido').innerHTML=renderPaso3(); };
-
-    function renderPaso3() {
-      const {modo,peds,total,mesa}=cobroState;
-      const metodos=['💵 Efectivo','📱 Nequi','💳 Daviplata','🤝 A crédito'];
-      const metodosVal=['efectivo','nequi','daviplata','credito'];
-
-      if(modo==='total'){
-        cobroState.metodoTotal='efectivo';
-        let html=`<div class="text-xs text-gray-500 mb-1">Paso 3 de 3 — Método de pago</div>
-          <div class="text-2xl font-bold text-green-700 mb-4">${fCOP(total)}</div>
-          ${cobroState.clienteData?`<div class="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 text-sm"><span class="font-medium">👤 ${cobroState.clienteData.nombre}</span></div>`:''}
-          <div class="grid grid-cols-2 gap-3 mb-6">
-            ${metodos.map((m,i)=>`<button onclick="selMetodoCobro('${metodosVal[i]}',this,'total')"
-              class="metodo-pago-btn ${i===0?'selected':''}" data-metodo="${metodosVal[i]}">${m}</button>`).join('')}
-          </div>
-          <div id="aviso-credito-total" class="${cobroState.metodoTotal==='credito'?'':'hidden'} bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-xs text-amber-700">
-            ⚠️ Se registrará como venta a crédito. El cliente debe estar seleccionado.
-          </div>
-          <div class="grid grid-cols-2 gap-3">
-            <button onclick="irPaso2()" class="border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600">← Volver</button>
-            <button onclick="procesarCobroTotal()" class="bg-green-600 text-white rounded-xl py-2.5 text-sm font-medium">✓ Confirmar y recibo</button>
-          </div>`;
-        return html;
-      } else {
-        // Por persona
-        const personas=mesa.personas||2;
-        let html=`<div class="text-xs text-gray-500 mb-3">Paso 3 de 3 — Pago por persona</div>
-          <div class="space-y-4">`;
-        cobroState.asignaciones.forEach((asi,idx)=>{
-          const pedsMesa=peds;
-          html+=`<div class="bg-gray-50 rounded-xl p-3">
-            <div class="text-sm font-semibold mb-2">👤 Persona ${asi.persona}</div>
-            <div class="text-xs text-gray-500 mb-2">Asigna pedidos:</div>
-            ${pedsMesa.map(p=>`<label class="flex items-center gap-2 text-xs mb-1">
-              <input type="checkbox" class="ped-asign accent-green-600" data-persona="${asi.persona}" data-pedid="${p.id}" data-total="${p.total}" ${idx===0?'checked':''}/>
-              ${p.tipo==='corriente'?'Corriente':(p.items||[]).map(i=>i.nombre).join(',')} — ${fCOP(p.total)}</label>`).join('')}
-            <div class="mt-2"><div class="text-xs text-gray-500 mb-1">Método de pago:</div>
-            <div class="grid grid-cols-2 gap-2">
-              ${metodos.map((m,i)=>`<button onclick="selMetodoCobro('${metodosVal[i]}',this,'persona-${asi.persona}')"
-                class="metodo-pago-btn text-xs ${i===0?'selected':''}" data-persona="${asi.persona}">${m}</button>`).join('')}
-            </div></div>
-          </div>`;
-        });
-        html+=`</div>
-          <div class="grid grid-cols-2 gap-3 mt-4">
-            <button onclick="irPaso2()" class="border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600">← Volver</button>
-            <button onclick="procesarCobroSeparado()" class="bg-green-600 text-white rounded-xl py-2.5 text-sm font-medium">✓ Confirmar todo</button>
-          </div>`;
-        return html;
-      }
-    }
-
-    window.irPaso2=()=>{ document.getElementById('panel-contenido').innerHTML=renderPaso2(); };
-
-    window.selMetodoCobro=(metodo,el,grupo)=>{
-      const btns=grupo.startsWith('persona-')
-        ?document.querySelectorAll(`[data-persona="${grupo.split('-')[1]}"].metodo-pago-btn`)
-        :document.querySelectorAll('.metodo-pago-btn[data-metodo]');
-      btns.forEach(b=>b.classList.remove('selected'));
-      el.classList.add('selected');
-      if(grupo==='total'){
-        cobroState.metodoTotal=metodo;
-        document.getElementById('aviso-credito-total').classList.toggle('hidden',metodo!=='credito');
-      }
-    };
-
-    window.procesarCobroTotal=async()=>{
-      const {peds,mesa,metodoTotal,clienteId,clienteData,total}=cobroState;
-      if(metodoTotal==='credito'&&!clienteId){ alert('Selecciona un cliente para la venta a crédito.'); return; }
-      for(const p of peds){
-        await updateDoc(doc(db,'pedidos',p.id),{estado:'pagado',metodoPago:metodoTotal,clienteId:clienteId||null,pagadoEn:serverTimestamp()});
-      }
-      if(metodoTotal==='credito'){
-        await addDoc(collection(db,'creditos'),{clienteId,clienteNombre:clienteData.nombre,mesaNumero:mesa.numero,total,tipo:'venta_credito',creadoEn:serverTimestamp(),saldoPendiente:total,estado:'pendiente'});
-        await updateDoc(doc(db,'clientes',clienteId),{saldoPendiente:(clienteData.saldoPendiente||0)+total});
-      }
-      await updateDoc(doc(db,'mesas',mesa.id),{estado:'libre',personas:0});
-      cerrarPanel();
-      imprimirRecibo(peds,metodoTotal,total,clienteData);
-    };
-
-    window.procesarCobroSeparado=async()=>{
-      const {peds,mesa}=cobroState;
-      const personas=mesa.personas||2;
-      for(let i=1;i<=personas;i++){
-        const checks=[...document.querySelectorAll(`.ped-asign[data-persona="${i}"]:checked`)];
-        if(!checks.length) continue;
-        const pedIds=checks.map(c=>c.dataset.pedid);
-        const subtotal=checks.reduce((s,c)=>s+parseFloat(c.dataset.total),0);
-        const metBtn=document.querySelector(`.metodo-pago-btn.selected[data-persona="${i}"]`);
-        const metodo=metBtn?metBtn.dataset.metodo||metBtn.textContent.trim().includes('Efectivo')?'efectivo':metBtn.textContent.includes('Nequi')?'nequi':metBtn.textContent.includes('Daviplata')?'daviplata':'credito':'efectivo';
-        for(const pid of pedIds) await updateDoc(doc(db,'pedidos',pid),{estado:'pagado',metodoPago:metodo,pagadoEn:serverTimestamp()});
-        const pedsPer=peds.filter(p=>pedIds.includes(p.id));
-        imprimirRecibo(pedsPer,metodo,subtotal,null,`Persona ${i}`);
-      }
-      await updateDoc(doc(db,'mesas',mesa.id),{estado:'libre',personas:0});
-      cerrarPanel();
-    };
-
-    function imprimirRecibo(peds,metodo,total,cliente=null,titulo='') {
-      const hora=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-      let lineas='';
-      peds.forEach(p=>{
-        if(p.tipo==='corriente') lineas+=`<div style="display:flex;justify-content:space-between"><span>Almuerzo Corriente</span><span>${fCOP(configNegocio.precioCorriente)}</span></div>`;
-        else (p.items||[]).forEach(i=>{ lineas+=`<div style="display:flex;justify-content:space-between"><span>${i.cantidad}x ${i.nombre}</span><span>${fCOP(i.precio)}</span></div>`; });
-        (p.adicionales||[]).forEach(a=>{ lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ ${a.nombre}</span><span>${fCOP(a.precio)}</span></div>`; });
-        if(p.paraLlevar) lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ Desechables</span><span>${fCOP(configNegocio.precioDesechables)}</span></div>`;
-      });
-      document.getElementById('print-area').innerHTML=`<div style="font-family:monospace;font-size:13px;width:80mm;padding:8px">
-        <div style="text-align:center;font-weight:bold;font-size:15px">${configNegocio.nombre||'Rest-Control'}</div>
-        ${configNegocio.nit?`<div style="text-align:center;font-size:11px">NIT: ${configNegocio.nit}</div>`:''}
-        ${configNegocio.direccion?`<div style="text-align:center;font-size:11px">${configNegocio.direccion}</div>`:''}
-        <div style="text-align:center;font-size:11px">${new Date().toLocaleDateString('es-CO')} ${hora}</div>
-        ${titulo?`<div style="text-align:center;font-weight:bold">${titulo}</div>`:''}
-        ${cliente?`<div style="font-size:11px">Cliente: ${cliente.nombre}</div>${cliente.documento?`<div style="font-size:11px">CC/NIT: ${cliente.documento}</div>`:''}`:'' }
-        <div style="border-top:1px dashed #000;margin:6px 0"></div>
-        ${lineas}
-        <div style="border-top:1px dashed #000;margin:6px 0"></div>
-        <div style="display:flex;justify-content:space-between;font-weight:bold"><span>TOTAL</span><span>${fCOP(total)}</span></div>
-        <div style="font-size:11px">Pago: ${metodo==='credito'?'A crédito':metodo}</div>
-        <div style="border-top:1px dashed #000;margin:6px 0"></div>
-        <div style="text-align:center;font-size:11px">${configNegocio.mensaje||'¡Gracias por su visita!'}</div>
       </div>`;
-      document.getElementById('print-area').classList.remove('hidden');
-      window.print();
-      document.getElementById('print-area').classList.add('hidden');
     }
+    html+=`</div><div class="grid grid-cols-2 gap-3 mt-4">
+      <button onclick="document.getElementById('panel-contenido').innerHTML=renderPaso2Cobro()" class="border border-gray-200 rounded-xl py-2.5 text-sm text-gray-600">← Volver</button>
+      <button onclick="procesarCobroSeparado()" class="bg-green-600 text-white rounded-xl py-2.5 text-sm font-medium">✓ Confirmar todo</button>
+    </div>`;
+    return html;
+  }
+}
 
-    // ════════════════════════════════════════════════
-    // CLIENTES Y CRÉDITOS
-    // ════════════════════════════════════════════════
-    function renderClientes() {
-      const totalSaldo=clientesData.reduce((s,c)=>s+(c.saldoPendiente||0),0);
-      const conSaldo=clientesData.filter(c=>(c.saldoPendiente||0)>0).length;
-      document.getElementById('stats-clientes').innerHTML=[
-        {label:'Total clientes',value:clientesData.length},
-        {label:'Con saldo pendiente',value:conSaldo},
-        {label:'Total cartera',value:fCOP(totalSaldo)}
-      ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold text-gray-900 mt-1">${s.value}</div></div>`).join('');
-      filtrarClientes();
+window.selMetodoCobro=(metodo,el)=>{
+  cobroState.metodoTotal=metodo;
+  document.querySelectorAll('.metodo-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('aviso-credito')?.classList.toggle('hidden',metodo!=='credito');
+};
+window.selMetodoPersona=(metodo,el,persona)=>{
+  document.querySelectorAll(`.metodo-btn[data-persona="${persona}"]`).forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+};
+
+window.procesarCobroTotal=async()=>{
+  const {peds,mesa,metodoTotal,clienteId,clienteData,total}=cobroState;
+  if(metodoTotal==='credito'&&!clienteId){alert('Selecciona un cliente para venta a crédito.');return;}
+  for(const p of peds) await updateDoc(doc(db,'pedidos',p.id),{estado:'pagado',metodoPago:metodoTotal,clienteId:clienteId||null,pagadoEn:serverTimestamp()});
+  if(metodoTotal==='credito'){
+    await addDoc(collection(db,'creditos'),{clienteId,clienteNombre:clienteData.nombre,mesaNumero:mesa.numero,total,creadoEn:serverTimestamp(),saldoPendiente:total,estado:'pendiente'});
+    await updateDoc(doc(db,'clientes',clienteId),{saldoPendiente:(clienteData.saldoPendiente||0)+total});
+  }
+  await updateDoc(doc(db,'mesas',mesa.id),{estado:'libre',personas:0});
+  cerrarPanel();
+  imprimirRecibo(peds,metodoTotal,total,clienteData);
+};
+
+window.procesarCobroSeparado=async()=>{
+  const {peds,mesa}=cobroState;
+  const personas=mesa.personas||2;
+  for(let i=1;i<=personas;i++){
+    const checks=[...document.querySelectorAll(`.ped-pers[data-persona="${i}"]:checked`)];
+    if(!checks.length)continue;
+    const pedIds=checks.map(c=>c.dataset.pedid);
+    const subtotal=checks.reduce((s,c)=>s+parseFloat(c.dataset.total||0),0);
+    const metBtn=document.querySelector(`.metodo-btn.selected[data-persona="${i}"]`);
+    let metodo='efectivo';
+    if(metBtn){
+      const txt=metBtn.textContent;
+      if(txt.includes('Nequi'))metodo='nequi';
+      else if(txt.includes('Daviplata'))metodo='daviplata';
+      else if(txt.includes('crédito'))metodo='credito';
     }
+    for(const pid of pedIds) await updateDoc(doc(db,'pedidos',pid),{estado:'pagado',metodoPago:metodo,pagadoEn:serverTimestamp()});
+    const pedsPer=peds.filter(p=>pedIds.includes(p.id));
+    imprimirRecibo(pedsPer,metodo,subtotal,null,`Persona ${i}`);
+  }
+  await updateDoc(doc(db,'mesas',mesa.id),{estado:'libre',personas:0});
+  cerrarPanel();
+};
 
-    window.filtrarClientes=()=>{
-      const q=(document.getElementById('buscar-cliente-input')?.value||'').toLowerCase();
-      const filtered=q?clientesData.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.documento||'').includes(q)):clientesData;
-      document.getElementById('lista-clientes').innerHTML=filtered.map(c=>`
-        <div class="bg-white border border-gray-100 rounded-xl p-4">
-          <div class="flex justify-between items-start">
-            <div>
-              <div class="text-sm font-semibold">${c.nombre}</div>
-              <div class="text-xs text-gray-400">${c.documento?'CC/NIT: '+c.documento:''} ${c.telefono?'· Tel: '+c.telefono:''}</div>
-            </div>
-            <div class="text-right">
-              <div class="text-sm font-bold ${(c.saldoPendiente||0)>0?'text-red-600':'text-green-700'}">${fCOP(c.saldoPendiente||0)}</div>
-              <div class="text-xs text-gray-400">${(c.saldoPendiente||0)>0?'Pendiente':'Al día'}</div>
-            </div>
-          </div>
-          ${(c.saldoPendiente||0)>0?`<div class="mt-3 flex gap-2">
-            <button onclick="abrirAbonoCliente('${c.id}')" class="flex-1 text-sm bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">💵 Registrar abono</button>
-            <button onclick="pagarTotal('${c.id}')" class="flex-1 text-sm border border-green-600 text-green-700 py-2 rounded-lg hover:bg-green-50">✓ Pagar total</button>
-          </div>`:''}
-        </div>`).join('')||'<p class="text-sm text-gray-400">Sin clientes registrados.</p>';
-    };
+function imprimirRecibo(peds,metodo,total,cliente=null,titulo=''){
+  const hora=new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  let lineas='';
+  peds.forEach(p=>{
+    if(p.tipo==='corriente')lineas+=`<div style="display:flex;justify-content:space-between"><span>Almuerzo Corriente</span><span>${fCOP(configNegocio.precioCorriente)}</span></div>`;
+    else(p.items||[]).forEach(i=>{lineas+=`<div style="display:flex;justify-content:space-between"><span>${i.cantidad}x ${i.nombre}</span><span>${fCOP(i.precio)}</span></div>`;});
+    (p.adicionales||[]).forEach(a=>{lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ ${a.nombre}</span><span>${fCOP(a.precio)}</span></div>`;});
+    if(p.paraLlevar)lineas+=`<div style="display:flex;justify-content:space-between;font-size:11px"><span>+ Desechables</span><span>${fCOP(configNegocio.precioDesechables)}</span></div>`;
+  });
+  document.getElementById('print-area').innerHTML=`<div style="font-family:monospace;font-size:13px;width:80mm;padding:8px">
+    <div style="text-align:center;font-weight:bold;font-size:15px">${configNegocio.nombre||'Rest-Control'}</div>
+    ${configNegocio.nit?`<div style="text-align:center;font-size:11px">NIT: ${configNegocio.nit}</div>`:''}
+    ${configNegocio.direccion?`<div style="text-align:center;font-size:11px">${configNegocio.direccion}</div>`:''}
+    <div style="text-align:center;font-size:11px">${new Date().toLocaleDateString('es-CO')} ${hora}</div>
+    ${titulo?`<div style="text-align:center;font-weight:bold">${titulo}</div>`:''}
+    ${cliente?`<div style="font-size:11px">Cliente: ${cliente.nombre}</div>`:''}
+    <div style="border-top:1px dashed #000;margin:6px 0"></div>
+    ${lineas}
+    <div style="border-top:1px dashed #000;margin:6px 0"></div>
+    <div style="display:flex;justify-content:space-between;font-weight:bold"><span>TOTAL</span><span>${fCOP(total)}</span></div>
+    <div style="font-size:11px">Pago: ${metodo==='credito'?'A crédito':metodo}</div>
+    <div style="border-top:1px dashed #000;margin:6px 0"></div>
+    <div style="text-align:center;font-size:11px">${configNegocio.mensaje||'¡Gracias por su visita!'}</div>
+  </div>`;
+  document.getElementById('print-area').classList.remove('hidden');
+  window.print();
+  document.getElementById('print-area').classList.add('hidden');
+}
 
-    window.abrirModalCrearCliente=()=>{
-      showModal(`<h3 class="text-base font-semibold mb-4">Nuevo cliente</h3>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Nombre *</label><input id="cli-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-          <div><label class="text-xs text-gray-500">Cédula / NIT</label><input id="cli-doc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
-          <div><label class="text-xs text-gray-500">Teléfono</label><input id="cli-tel" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+// ════════════════════════════════════════════════════
+// CLIENTES
+// ════════════════════════════════════════════════════
+function renderClientes(){
+  const totalSaldo=clientesData.reduce((s,c)=>s+(c.saldoPendiente||0),0);
+  document.getElementById('stats-clientes').innerHTML=[
+    {label:'Total clientes',value:clientesData.length},
+    {label:'Con saldo pendiente',value:clientesData.filter(c=>(c.saldoPendiente||0)>0).length},
+    {label:'Total cartera',value:fCOP(totalSaldo)}
+  ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold text-gray-900 mt-1">${s.value}</div></div>`).join('');
+  filtrarClientes();
+}
+window.filtrarClientes=()=>{
+  const q=(document.getElementById('buscar-cliente-input')?.value||'').toLowerCase();
+  const list=q?clientesData.filter(c=>(c.nombre||'').toLowerCase().includes(q)||(c.documento||'').includes(q)):clientesData;
+  document.getElementById('lista-clientes').innerHTML=list.map(c=>`
+    <div class="bg-white border border-gray-100 rounded-xl p-4">
+      <div class="flex justify-between items-start">
+        <div><div class="text-sm font-semibold">${c.nombre}</div>
+          <div class="text-xs text-gray-400">${c.documento?'CC/NIT: '+c.documento:''} ${c.telefono?'· '+c.telefono:''}</div></div>
+        <div class="text-right">
+          <div class="text-sm font-bold ${(c.saldoPendiente||0)>0?'text-red-600':'text-green-700'}">${fCOP(c.saldoPendiente||0)}</div>
+          <div class="text-xs text-gray-400">${(c.saldoPendiente||0)>0?'Pendiente':'Al día'}</div>
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="guardarCliente()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
-        </div>`);
-    };
-    window.guardarCliente=async()=>{
-      const nombre=document.getElementById('cli-nombre').value.trim();
-      if(!nombre){alert('El nombre es obligatorio.');return;}
-      await addDoc(collection(db,'clientes'),{nombre,documento:document.getElementById('cli-doc').value.trim(),telefono:document.getElementById('cli-tel').value.trim(),saldoPendiente:0,creadoEn:serverTimestamp()});
-      closeModal();
-    };
-
-    window.abrirAbonoCliente=async(clienteId)=>{
-      const c=clientesData.find(x=>x.id===clienteId);
-      showModal(`<h3 class="text-base font-semibold mb-1">Registrar abono</h3>
-        <p class="text-xs text-gray-500 mb-4">${c.nombre} — Saldo: ${fCOP(c.saldoPendiente)}</p>
-        <div class="space-y-3">
-          <div><label class="text-xs text-gray-500">Valor del abono *</label>
-            <input id="abono-valor" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="0" max="${c.saldoPendiente}"/></div>
-          <div><label class="text-xs text-gray-500">Método de pago</label>
-            <div class="grid grid-cols-3 gap-2 mt-1">
-              <button onclick="selMetAbono('efectivo',this)" class="metodo-pago-btn selected text-xs py-2">💵 Efectivo</button>
-              <button onclick="selMetAbono('nequi',this)" class="metodo-pago-btn text-xs py-2">📱 Nequi</button>
-              <button onclick="selMetAbono('daviplata',this)" class="metodo-pago-btn text-xs py-2">💳 Daviplata</button>
-            </div>
-          </div>
+      </div>
+      ${(c.saldoPendiente||0)>0?`<div class="mt-3 flex gap-2">
+        <button onclick="abrirAbonoCliente('${c.id}')" class="flex-1 text-sm bg-green-600 text-white py-2 rounded-lg">💵 Abonar</button>
+        <button onclick="pagarTotalCliente('${c.id}')" class="flex-1 text-sm border border-green-600 text-green-700 py-2 rounded-lg">✓ Pagar total</button>
+      </div>`:''}
+    </div>`).join('')||'<p class="text-sm text-gray-400">Sin clientes.</p>';
+};
+window.abrirModalCrearCliente=()=>{showModal(`<h3 class="text-base font-semibold mb-4">Nuevo cliente</h3>
+  <div class="space-y-3">
+    <div><label class="text-xs text-gray-500">Nombre *</label><input id="cli-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div><label class="text-xs text-gray-500">Cédula / NIT</label><input id="cli-doc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div><label class="text-xs text-gray-500">Teléfono</label><input id="cli-tel" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+  </div>
+  <div class="flex justify-end gap-2 mt-4">
+    <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+    <button onclick="guardarCliente()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button>
+  </div>`);};
+window.guardarCliente=async()=>{
+  const nombre=document.getElementById('cli-nombre').value.trim();
+  if(!nombre){alert('El nombre es obligatorio.');return;}
+  await addDoc(collection(db,'clientes'),{nombre,documento:document.getElementById('cli-doc').value.trim(),telefono:document.getElementById('cli-tel').value.trim(),saldoPendiente:0,creadoEn:serverTimestamp()});
+  closeModal();
+};
+window.abrirAbonoCliente=async(clienteId)=>{
+  const c=clientesData.find(x=>x.id===clienteId);
+  showModal(`<h3 class="text-base font-semibold mb-1">Registrar abono</h3>
+    <p class="text-xs text-gray-500 mb-4">${c.nombre} — Saldo: ${fCOP(c.saldoPendiente)}</p>
+    <div class="space-y-3">
+      <div><label class="text-xs text-gray-500">Valor *</label><input id="abono-valor" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="0"/></div>
+      <div><label class="text-xs text-gray-500">Método</label>
+        <div class="grid grid-cols-3 gap-2 mt-1">
+          <button onclick="selMetAbono('efectivo',this)" class="metodo-btn selected text-xs py-2">💵 Efectivo</button>
+          <button onclick="selMetAbono('nequi',this)" class="metodo-btn text-xs py-2">📱 Nequi</button>
+          <button onclick="selMetAbono('daviplata',this)" class="metodo-btn text-xs py-2">💳 Daviplata</button>
         </div>
-        <div class="flex justify-end gap-2 mt-4">
-          <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
-          <button onclick="procesarAbono('${clienteId}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Registrar</button>
-        </div>`);
-    };
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-4">
+      <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+      <button onclick="procesarAbono('${clienteId}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Registrar</button>
+    </div>`);
+};
+let metodoAbono='efectivo';
+window.selMetAbono=(m,el)=>{metodoAbono=m;document.querySelectorAll('.metodo-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');};
+window.procesarAbono=async(clienteId)=>{
+  const valor=parseFloat(document.getElementById('abono-valor').value)||0;
+  if(!valor){alert('Ingresa un valor.');return;}
+  const c=clientesData.find(x=>x.id===clienteId);
+  const nuevoSaldo=Math.max(0,(c.saldoPendiente||0)-valor);
+  await updateDoc(doc(db,'clientes',clienteId),{saldoPendiente:nuevoSaldo});
+  await addDoc(collection(db,'pagos_credito'),{clienteId,clienteNombre:c.nombre,valor,metodoPago:metodoAbono,tipo:'abono',fecha:serverTimestamp(),registradoPor:currentProfile.nombre||currentUser.email});
+  await addDoc(collection(db,'gastos'),{descripcion:`Cobro crédito — ${c.nombre}`,categoria:'Cobro_credito',valor:-valor,fecha:serverTimestamp(),esIngreso:true,registradoPor:currentProfile.nombre||currentUser.email});
+  closeModal();
+  alert(`✅ Abono ${fCOP(valor)} registrado. Nuevo saldo: ${fCOP(nuevoSaldo)}`);
+};
+window.pagarTotalCliente=async(clienteId)=>{
+  const c=clientesData.find(x=>x.id===clienteId);
+  if(!confirm(`¿Pago total de ${fCOP(c.saldoPendiente)} para ${c.nombre}?`))return;
+  await updateDoc(doc(db,'clientes',clienteId),{saldoPendiente:0});
+  await addDoc(collection(db,'pagos_credito'),{clienteId,clienteNombre:c.nombre,valor:c.saldoPendiente,metodoPago:'efectivo',tipo:'pago_total',fecha:serverTimestamp(),registradoPor:currentProfile.nombre||currentUser.email});
+  await addDoc(collection(db,'gastos'),{descripcion:`Cobro crédito total — ${c.nombre}`,categoria:'Cobro_credito',valor:-(c.saldoPendiente),fecha:serverTimestamp(),esIngreso:true,registradoPor:currentProfile.nombre||currentUser.email});
+  alert(`✅ Pago total registrado para ${c.nombre}`);
+};
 
-    let metodoAbono='efectivo';
-    window.selMetAbono=(m,el)=>{ metodoAbono=m; document.querySelectorAll('.metodo-pago-btn').forEach(b=>b.classList.remove('selected')); el.classList.add('selected'); };
+// ════════════════════════════════════════════════════
+// MENÚ
+// ════════════════════════════════════════════════════
+window.showMenuTab=(tab,el)=>{
+  document.querySelectorAll('.menu-tab').forEach(t=>t.className='menu-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent');
+  el.className='menu-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600';
+  ['corriente','carta','adicionales'].forEach(t=>document.getElementById('tab-'+t).classList.toggle('hidden',t!==tab));
+};
+function renderCorriente(){
+  const comp=corrienteData.componentes||{};
+  const el=document.getElementById('componentes-corriente');
+  if(!el)return;
+  if(!Object.keys(comp).length){el.innerHTML='<p class="text-sm text-gray-400">Sin componentes.</p>';return;}
+  el.innerHTML=Object.entries(comp).map(([nombre,opciones])=>`
+    <div class="bg-white border border-gray-100 rounded-xl p-4">
+      <div class="flex justify-between items-center mb-3">
+        <div class="text-sm font-semibold">${nombre}</div>
+        <div class="flex gap-3">
+          <button onclick="abrirModalOpcion('${nombre}')" class="text-xs text-green-600">+ Opción</button>
+          <button onclick="eliminarComponente('${nombre}')" class="text-xs text-red-400">Eliminar</button>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        ${(opciones||[]).map(o=>`
+          <div class="flex items-center gap-1 px-3 py-1 rounded-full border text-xs ${o.activo?'bg-green-50 border-green-300 text-green-800':'bg-gray-50 border-gray-200 text-gray-400'}">
+            <span>${o.nombre}</span>
+            <button onclick="toggleOpcion('${nombre}','${o.nombre}',${!o.activo})" class="ml-1">${o.activo?'✓':'○'}</button>
+            <button onclick="eliminarOpcion('${nombre}','${o.nombre}')" class="ml-0.5 text-red-400">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+window.abrirModalComponente=()=>showModal(`<h3 class="text-base font-semibold mb-4">Nuevo componente</h3>
+  <input id="comp-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="Proteína, Principio..."/>
+  <div class="flex justify-end gap-2 mt-4"><button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+  <button onclick="guardarComponente()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear</button></div>`);
+window.guardarComponente=async()=>{const n=document.getElementById('comp-nombre').value.trim();if(!n)return;const c=corrienteData.componentes||{};c[n]=[];await setDoc(doc(db,'menu_corriente','hoy'),{componentes:c});closeModal();};
+window.eliminarComponente=async(n)=>{if(!confirm(`¿Eliminar "${n}"?`))return;const c=corrienteData.componentes||{};delete c[n];await setDoc(doc(db,'menu_corriente','hoy'),{componentes:c});};
+window.abrirModalOpcion=(comp)=>showModal(`<h3 class="text-base font-semibold mb-4">Nueva opción — ${comp}</h3>
+  <input id="opcion-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="Pollo asado, Fríjoles..."/>
+  <div class="flex justify-end gap-2 mt-4"><button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+  <button onclick="guardarOpcion('${comp}')" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Agregar</button></div>`);
+window.guardarOpcion=async(comp)=>{const n=document.getElementById('opcion-nombre').value.trim();if(!n)return;const c=corrienteData.componentes||{};if(!c[comp])c[comp]=[];c[comp].push({nombre:n,activo:true});await setDoc(doc(db,'menu_corriente','hoy'),{componentes:c});closeModal();};
+window.toggleOpcion=async(comp,op,activo)=>{const c=corrienteData.componentes||{};const idx=c[comp].findIndex(o=>o.nombre===op);if(idx>=0)c[comp][idx].activo=activo;await setDoc(doc(db,'menu_corriente','hoy'),{componentes:c});};
+window.eliminarOpcion=async(comp,op)=>{if(!confirm(`¿Eliminar "${op}"?`))return;const c=corrienteData.componentes||{};c[comp]=c[comp].filter(o=>o.nombre!==op);await setDoc(doc(db,'menu_corriente','hoy'),{componentes:c});};
+function renderCarta(){const el=document.getElementById('lista-carta');if(!el)return;el.innerHTML=cartaData.map(p=>`
+  <div class="bg-white border border-gray-100 rounded-xl p-4">
+    <div class="flex justify-between items-start mb-1"><div class="text-sm font-medium">${p.nombre}</div>
+      <span class="badge ${p.activo?'bg-green-100 text-green-800':'bg-red-100 text-red-700'}">${p.activo?'activo':'inactivo'}</span></div>
+    <div class="text-xs text-gray-500 mb-2">${p.descripcion||''}</div>
+    <div class="flex justify-between items-center"><span class="text-sm font-semibold text-green-700">${fCOP(p.precio)}</span>
+      <button onclick="toggleCarta('${p.id}',${p.activo})" class="text-xs text-gray-400">${p.activo?'Desactivar':'Activar'}</button>
+    </div>
+  </div>`).join('')||'<p class="text-sm text-gray-400 col-span-3">Sin platos.</p>';}
+window.toggleCarta=async(id,activo)=>updateDoc(doc(db,'menu_carta',id),{activo:!activo});
+window.abrirModalCarta=()=>showModal(`<h3 class="text-base font-semibold mb-4">Agregar plato</h3>
+  <div class="space-y-3">
+    <div><label class="text-xs text-gray-500">Nombre *</label><input id="carta-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div><label class="text-xs text-gray-500">Descripción</label><input id="carta-desc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div><label class="text-xs text-gray-500">Precio *</label><input id="carta-precio" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+  </div>
+  <div class="flex justify-end gap-2 mt-4"><button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+  <button onclick="guardarCarta()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button></div>`);
+window.guardarCarta=async()=>{const n=document.getElementById('carta-nombre').value.trim();const p=parseFloat(document.getElementById('carta-precio').value);if(!n||!p){alert('Nombre y precio obligatorios.');return;}await addDoc(collection(db,'menu_carta'),{nombre:n,descripcion:document.getElementById('carta-desc').value,precio:p,activo:true,creadoEn:serverTimestamp()});closeModal();};
+function renderAdicionales(){const el=document.getElementById('lista-adicionales');if(!el)return;el.innerHTML=adicionalesData.map(a=>`
+  <div class="bg-white border border-gray-100 rounded-xl p-4">
+    <div class="flex justify-between items-start mb-1"><div class="text-sm font-medium">${a.nombre}</div>
+      <span class="badge ${a.activo?'bg-green-100 text-green-800':'bg-red-100 text-red-700'}">${a.activo?'activo':'inactivo'}</span></div>
+    <div class="flex justify-between items-center mt-2"><span class="text-sm font-semibold text-green-700">${fCOP(a.precio)}</span>
+      <button onclick="toggleAdicional('${a.id}',${a.activo})" class="text-xs text-gray-400">${a.activo?'Desactivar':'Activar'}</button>
+    </div>
+  </div>`).join('')||'<p class="text-sm text-gray-400 col-span-3">Sin adicionales.</p>';}
+window.toggleAdicional=async(id,activo)=>updateDoc(doc(db,'menu_adicionales',id),{activo:!activo});
+window.abrirModalAdicional=()=>showModal(`<h3 class="text-base font-semibold mb-4">Agregar adicional</h3>
+  <div class="space-y-3">
+    <div><label class="text-xs text-gray-500">Nombre *</label><input id="adic-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div><label class="text-xs text-gray-500">Precio *</label><input id="adic-precio" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+  </div>
+  <div class="flex justify-end gap-2 mt-4"><button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+  <button onclick="guardarAdicional()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button></div>`);
+window.guardarAdicional=async()=>{const n=document.getElementById('adic-nombre').value.trim();const p=parseFloat(document.getElementById('adic-precio').value);if(!n||!p){alert('Nombre y precio obligatorios.');return;}await addDoc(collection(db,'menu_adicionales'),{nombre:n,precio:p,activo:true,creadoEn:serverTimestamp()});closeModal();};
 
-    window.procesarAbono=async(clienteId)=>{
-      const valor=parseFloat(document.getElementById('abono-valor').value)||0;
-      if(!valor||valor<=0){alert('Ingresa un valor válido.');return;}
-      const c=clientesData.find(x=>x.id===clienteId);
-      const nuevoSaldo=Math.max(0,(c.saldoPendiente||0)-valor);
-      await updateDoc(doc(db,'clientes',clienteId),{saldoPendiente:nuevoSaldo});
-      await addDoc(collection(db,'pagos_credito'),{clienteId,clienteNombre:c.nombre,valor,metodoPago:metodoAbono,tipo:'abono',fecha:serverTimestamp(),registradoPor:currentProfile.nombre||currentUser.email});
-      await addDoc(collection(db,'gastos'),{descripcion:`Cobro crédito — ${c.nombre}`,categoria:'Cobro_credito',valor:-valor,fecha:serverTimestamp(),esIngreso:true,registradoPor:currentProfile.nombre||currentUser.email});
-      closeModal();
-      alert(`✅ Abono de ${fCOP(valor)} registrado. Nuevo saldo: ${fCOP(nuevoSaldo)}`);
-    };
+// ════════════════════════════════════════════════════
+// GASTOS
+// ════════════════════════════════════════════════════
+function renderGastos(){
+  const periodo=document.getElementById('filtro-gastos-periodo')?.value||'hoy';
+  const cat=document.getElementById('filtro-gastos-cat')?.value||'todos';
+  const h=hoy();const now=new Date();
+  const filtered=gastosData.filter(g=>{const fOk=periodo==='hoy'?sameDay(g.fecha,h):sameMon(g.fecha,now.getFullYear(),now.getMonth());return fOk&&(cat==='todos'||g.categoria===cat);});
+  const total=filtered.filter(g=>!g.esIngreso).reduce((s,g)=>s+(g.valor||0),0);
+  const ingresos=filtered.filter(g=>g.esIngreso).reduce((s,g)=>s+Math.abs(g.valor||0),0);
+  const porCat={};filtered.filter(g=>!g.esIngreso).forEach(g=>{porCat[g.categoria]=(porCat[g.categoria]||0)+(g.valor||0);});
+  const el=document.getElementById('stats-gastos');if(!el)return;
+  el.innerHTML=[{label:'Total gastos',value:fCOP(total)},{label:'Cobros crédito',value:fCOP(ingresos)},...Object.entries(porCat).slice(0,2).map(([k,v])=>({label:k,value:fCOP(v)}))].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold text-gray-900 mt-1">${s.value}</div></div>`).join('');
+  const clrCat={Ingredientes:'bg-green-100 text-green-800',Servicios:'bg-blue-100 text-blue-800',Arriendo:'bg-purple-100 text-purple-800',Nomina:'bg-amber-100 text-amber-800',Mantenimiento:'bg-orange-100 text-orange-800',Cobro_credito:'bg-teal-100 text-teal-800',Otro:'bg-gray-100 text-gray-600'};
+  const lg=document.getElementById('lista-gastos');if(lg)lg.innerHTML=filtered.map(g=>`
+    <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4">
+      <div class="flex-1"><div class="text-sm font-medium">${g.descripcion}</div><div class="text-xs text-gray-400">${g.registradoPor||''}</div></div>
+      <span class="badge ${clrCat[g.categoria]||'bg-gray-100 text-gray-600'}">${g.categoria}</span>
+      <div class="text-sm font-semibold ${g.esIngreso?'text-green-600':'text-red-600'}">${g.esIngreso?'+':''}${fCOP(Math.abs(g.valor))}</div>
+    </div>`).join('')||'<p class="text-sm text-gray-400">Sin registros.</p>';
+}
+window.filtrarGastos=renderGastos;
+window.abrirModalGasto=()=>showModal(`<h3 class="text-base font-semibold mb-4">Registrar gasto</h3>
+  <div class="space-y-3">
+    <div><label class="text-xs text-gray-500">Descripción *</label><input id="g-desc" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1"/></div>
+    <div><label class="text-xs text-gray-500">Categoría *</label>
+      <select id="g-cat" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1">
+        <option>Ingredientes</option><option>Servicios</option><option>Arriendo</option><option>Nomina</option><option>Mantenimiento</option><option>Otro</option>
+      </select></div>
+    <div><label class="text-xs text-gray-500">Valor *</label><input id="g-valor" type="number" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="0"/></div>
+  </div>
+  <div class="flex justify-end gap-2 mt-4"><button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+  <button onclick="guardarGasto()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Guardar</button></div>`);
+window.guardarGasto=async()=>{const d=document.getElementById('g-desc').value.trim();const v=parseFloat(document.getElementById('g-valor').value);if(!d||!v){alert('Completa todos los campos.');return;}await addDoc(collection(db,'gastos'),{descripcion:d,categoria:document.getElementById('g-cat').value,valor:v,fecha:serverTimestamp(),registradoPor:currentProfile.nombre||currentUser.email});closeModal();};
 
-    window.pagarTotal=async(clienteId)=>{
-      const c=clientesData.find(x=>x.id===clienteId);
-      if(!confirm(`¿Pago total de ${fCOP(c.saldoPendiente)} para ${c.nombre}?`)) return;
-      await updateDoc(doc(db,'clientes',clienteId),{saldoPendiente:0});
-      await addDoc(collection(db,'pagos_credito'),{clienteId,clienteNombre:c.nombre,valor:c.saldoPendiente,metodoPago:'efectivo',tipo:'pago_total',fecha:serverTimestamp(),registradoPor:currentProfile.nombre||currentUser.email});
-      await addDoc(collection(db,'gastos'),{descripcion:`Cobro crédito total — ${c.nombre}`,categoria:'Cobro_credito',valor:-(c.saldoPendiente),fecha:serverTimestamp(),esIngreso:true,registradoPor:currentProfile.nombre||currentUser.email});
-      alert(`✅ Pago total registrado para ${c.nombre}`);
-    };
+// ════════════════════════════════════════════════════
+// REPORTES
+// ════════════════════════════════════════════════════
+window.showReporteTab=(tab,el)=>{
+  document.querySelectorAll('.reporte-tab').forEach(t=>t.className='reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent');
+  el.className='reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600';
+  document.getElementById('tab-reporte-diario').classList.toggle('hidden',tab!=='diario');
+  document.getElementById('tab-reporte-mensual').classList.toggle('hidden',tab==='diario');
+};
+function renderReportes(){
+  const h=hoy();const now=new Date();
+  const pedHoy=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameDay(p.pagadoEn||p.creadoEn,h));
+  const pedCredHoy=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago==='credito'&&sameDay(p.pagadoEn||p.creadoEn,h));
+  const pedMes=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameMon(p.pagadoEn||p.creadoEn,now.getFullYear(),now.getMonth()));
+  const gHoy=gastosData.filter(g=>!g.esIngreso&&sameDay(g.fecha,h));
+  const cobrosHoy=gastosData.filter(g=>g.esIngreso&&sameDay(g.fecha,h));
+  const gMes=gastosData.filter(g=>!g.esIngreso&&sameMon(g.fecha,now.getFullYear(),now.getMonth()));
+  const tHoy=pedHoy.reduce((s,p)=>s+(p.total||0),0);
+  const cobrosT=cobrosHoy.reduce((s,g)=>s+Math.abs(g.valor||0),0);
+  const gHoyT=gHoy.reduce((s,g)=>s+(g.valor||0),0);
+  const tMes=pedMes.reduce((s,p)=>s+(p.total||0),0);
+  const gMesT=gMes.reduce((s,g)=>s+(g.valor||0),0);
+  const mesAnt=now.getMonth()===0?11:now.getMonth()-1;
+  const yearAnt=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  const pedMesAnt=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameMon(p.pagadoEn||p.creadoEn,yearAnt,mesAnt));
+  const tMesAnt=pedMesAnt.reduce((s,p)=>s+(p.total||0),0);
+  const varMes=tMesAnt?Math.round(((tMes-tMesAnt)/tMesAnt)*100):0;
+  const sd=document.getElementById('stats-diario');
+  if(sd)sd.innerHTML=[
+    {label:'Ventas cobradas',value:fCOP(tHoy)},
+    {label:'Ventas a crédito',value:fCOP(pedCredHoy.reduce((s,p)=>s+(p.total||0),0))},
+    {label:'Cobros de crédito',value:fCOP(cobrosT)},
+    {label:'Utilidad del día',value:fCOP(tHoy+cobrosT-gHoyT),color:true}
+  ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold ${s.color?(tHoy+cobrosT-gHoyT>=0?'text-green-700':'text-red-600'):'text-gray-900'} mt-1">${s.value}</div></div>`).join('');
+  const metodos={efectivo:0,nequi:0,daviplata:0};
+  pedHoy.forEach(p=>{if(metodos[p.metodoPago]!==undefined)metodos[p.metodoPago]+=p.total||0;});
+  const maxM=Math.max(...Object.values(metodos),1);
+  const cp=document.getElementById('chart-pagos');
+  if(cp)cp.innerHTML=Object.entries(metodos).map(([m,v])=>`
+    <div class="flex items-center gap-3"><div class="text-xs text-gray-600 w-16 capitalize">${m}</div>
+      <div class="flex-1 h-2 bg-gray-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:${Math.round((v/maxM)*100)}%"></div></div>
+      <div class="text-xs text-gray-700 w-20 text-right">${fCOP(v)}</div></div>`).join('');
+  const cnt={};pedHoy.forEach(p=>{if(p.tipo==='corriente')cnt['Almuerzo Corriente']=(cnt['Almuerzo Corriente']||0)+1;else(p.items||[]).forEach(i=>{cnt[i.nombre]=(cnt[i.nombre]||0)+i.cantidad;});});
+  const topH=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);const maxH=Math.max(...topH.map(t=>t[1]),1);
+  const tp=document.getElementById('top-platos-diario');
+  if(tp)tp.innerHTML=topH.map(([n,v])=>`<div class="flex items-center gap-3"><div class="text-xs flex-1 truncate">${n}</div>
+    <div class="w-20 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxH)*100)}%"></div></div>
+    <div class="text-xs text-gray-500 w-4 text-right">${v}</div></div>`).join('')||'<p class="text-xs text-gray-400">Sin ventas.</p>';
+  const sm=document.getElementById('stats-mensual');
+  if(sm)sm.innerHTML=[
+    {label:'Ventas cobradas',value:fCOP(tMes)},
+    {label:'Gastos del mes',value:fCOP(gMesT)},
+    {label:'Utilidad del mes',value:fCOP(tMes-gMesT),color:true},
+    {label:'vs mes anterior',value:`${varMes>0?'+':''}${varMes}%`,color2:true}
+  ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold ${s.color?(tMes-gMesT>=0?'text-green-700':'text-red-600'):s.color2?(varMes>=0?'text-green-700':'text-red-600'):'text-gray-900'} mt-1">${s.value}</div></div>`).join('');
+  const diasMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  const vd=Array(diasMes).fill(0);
+  pedMes.forEach(p=>{try{const dt=(p.pagadoEn||p.creadoEn)?.toDate?(p.pagadoEn||p.creadoEn).toDate():new Date();const dia=dt.getDate()-1;if(dia>=0&&dia<diasMes)vd[dia]+=p.total||0;}catch(e){}});
+  const maxD=Math.max(...vd,1);
+  const cm=document.getElementById('chart-mensual');
+  if(cm)cm.innerHTML=vd.map((v,i)=>`<div class="flex flex-col items-center flex-1" title="${fCOP(v)}">
+    <div class="w-full bg-green-500 rounded-t" style="height:${Math.max(2,Math.round((v/maxD)*100))}px"></div>
+    ${(i+1)%5===0?`<div class="text-xs text-gray-400">${i+1}</div>`:'<div class="h-3"></div>'}
+  </div>`).join('');
+  const comp=document.getElementById('comparativo-mes');
+  if(comp)comp.innerHTML=`<div class="space-y-2">
+    <div class="flex justify-between text-sm"><span class="text-gray-600">Este mes</span><span class="font-medium">${fCOP(tMes)}</span></div>
+    <div class="flex justify-between text-sm"><span class="text-gray-600">Mes anterior</span><span class="font-medium">${fCOP(tMesAnt)}</span></div>
+    <div class="flex justify-between text-sm border-t pt-2"><span class="text-gray-600">Variación</span><span class="font-semibold ${varMes>=0?'text-green-700':'text-red-600'}">${varMes>0?'+':''}${varMes}%</span></div></div>`;
+  const cntM={};pedMes.forEach(p=>{if(p.tipo==='corriente')cntM['Almuerzo Corriente']=(cntM['Almuerzo Corriente']||0)+1;else(p.items||[]).forEach(i=>{cntM[i.nombre]=(cntM[i.nombre]||0)+i.cantidad;});});
+  const topM=Object.entries(cntM).sort((a,b)=>b[1]-a[1]).slice(0,5);const maxMp=Math.max(...topM.map(t=>t[1]),1);
+  const tpm=document.getElementById('top-platos-mensual');
+  if(tpm)tpm.innerHTML=topM.map(([n,v])=>`<div class="flex items-center gap-3"><div class="text-xs flex-1 truncate">${n}</div>
+    <div class="w-20 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxMp)*100)}%"></div></div>
+    <div class="text-xs text-gray-500 w-4 text-right">${v}</div></div>`).join('')||'<p class="text-xs text-gray-400">Sin ventas.</p>';
+}
 
-    // ── Panel y Modal ────────────────────────────────
-    function abrirPanel(){ document.getElementById('panel-lateral').classList.add('open'); document.getElementById('panel-overlay').classList.remove('hidden'); }
-    window.cerrarPanel=()=>{ document.getElementById('panel-lateral').classList.remove('open'); document.getElementById('panel-overlay').classList.add('hidden'); };
-    window.showModal=html=>{ document.getElementById('modal-box').innerHTML=html; document.getElementById('modal-overlay').classList.add('show'); };
-    window.closeModal=()=>{ document.getElementById('modal-overlay').classList.remove('show'); };
-    document.getElementById('modal-overlay').addEventListener('click',e=>{ if(e.target===document.getElementById('modal-overlay')) closeModal(); });
+// ════════════════════════════════════════════════════
+// USUARIOS
+// ════════════════════════════════════════════════════
+function renderUsuarios(users){
+  const el=document.getElementById('lista-usuarios');if(!el)return;
+  const clr={admin:'bg-purple-100 text-purple-800',cajero:'bg-blue-100 text-blue-800',mesero:'bg-green-100 text-green-800'};
+  el.innerHTML=users.map(u=>`
+    <div class="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-4">
+      <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-sm font-semibold text-green-800 flex-shrink-0">${(u.nombre||'?').charAt(0).toUpperCase()}</div>
+      <div class="flex-1 min-w-0"><div class="text-sm font-medium truncate">${u.nombre||'Sin nombre'}</div>
+        <div class="text-xs text-gray-400">Usuario: ${u.usuario||u.email||''}</div></div>
+      <span class="badge ${clr[u.rol]||'bg-gray-100 text-gray-600'}">${u.rol||'sin rol'}</span>
+      <div class="w-2 h-2 rounded-full flex-shrink-0 ${u.activo?'bg-green-400':'bg-gray-300'}"></div>
+    </div>`).join('')||'<p class="text-sm text-gray-400">Sin usuarios.</p>';
+}
+window.abrirModalUsuario=()=>showModal(`<h3 class="text-base font-semibold mb-4">Nuevo usuario</h3>
+  <div class="space-y-3">
+    <div><label class="text-xs text-gray-500">Nombre completo *</label><input id="u-nombre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="María García"/></div>
+    <div><label class="text-xs text-gray-500">Usuario *</label>
+      <div class="flex items-center mt-1 border border-gray-200 rounded-lg overflow-hidden">
+        <input id="u-usuario" class="flex-1 px-3 py-2 text-sm outline-none" placeholder="maria"/>
+        <span class="px-2 py-2 bg-gray-50 text-xs text-gray-400 border-l border-gray-200">@restcontrol.com</span>
+      </div></div>
+    <div><label class="text-xs text-gray-500">Contraseña *</label><input id="u-pass" type="password" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1" placeholder="Mínimo 6 caracteres"/></div>
+    <div><label class="text-xs text-gray-500">Rol *</label>
+      <select id="u-rol" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1">
+        <option value="mesero">Mesero</option><option value="cajero">Cajero</option><option value="admin">Administrador</option>
+      </select></div>
+  </div>
+  <div id="u-error" class="hidden text-xs text-red-600 mt-3 bg-red-50 px-3 py-2 rounded-lg"></div>
+  <div class="flex justify-end gap-2 mt-4">
+    <button onclick="closeModal()" class="text-sm px-4 py-2 border border-gray-200 rounded-lg">Cancelar</button>
+    <button onclick="crearUsuario()" class="text-sm px-4 py-2 bg-green-600 text-white rounded-lg">Crear</button>
+  </div>`);
+window.crearUsuario=async()=>{
+  const nombre=document.getElementById('u-nombre').value.trim();
+  const usuario=document.getElementById('u-usuario').value.trim().toLowerCase().replace(/[^a-z0-9]/g,'');
+  const pass=document.getElementById('u-pass').value;
+  const rol=document.getElementById('u-rol').value;
+  const err=document.getElementById('u-error');
+  if(!nombre||!usuario||!pass){err.textContent='Completa todos los campos.';err.classList.remove('hidden');return;}
+  if(usuario.length<3){err.textContent='Usuario mínimo 3 caracteres.';err.classList.remove('hidden');return;}
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,usuario+'@restcontrol.com',pass);
+    await addDoc(collection(db,'usuarios'),{uid:cred.user.uid,nombre,usuario,email:usuario+'@restcontrol.com',rol,activo:true,creadoEn:serverTimestamp()});
+    closeModal();
+  }catch(e){const msgs={'auth/email-already-in-use':'Usuario ya existe.','auth/weak-password':'Mínimo 6 caracteres.'};err.textContent=msgs[e.code]||e.message;err.classList.remove('hidden');}
+};
 
-  </script>
+// ── Panel y Modal ─────────────────────────────────
+function abrirPanel(){document.getElementById('panel-lateral').classList.add('open');document.getElementById('panel-overlay').classList.remove('hidden');}
+window.cerrarPanel=()=>{document.getElementById('panel-lateral').classList.remove('open');document.getElementById('panel-overlay').classList.add('hidden');};
+window.showModal=html=>{document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-overlay').classList.add('show');};
+window.closeModal=()=>{document.getElementById('modal-overlay').classList.remove('show');};
+document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
+
+// Exponer renderPaso2 y renderPaso3 globalmente
+window.renderPaso1Cobro=renderPaso1Cobro;
+window.renderPaso2Cobro=renderPaso2Cobro;
+window.renderPaso3Cobro=renderPaso3Cobro;
+
+</script>
 </body>
 </html>
