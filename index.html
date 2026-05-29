@@ -35,14 +35,36 @@
       #print-area, #print-area * { visibility: visible; }
       #print-area { position: fixed; left: 0; top: 0; width: 80mm; }
     }
-    /* Responsive */
-    @media (max-width: 640px) {
-      aside { width: 0; overflow: hidden; }
-      main { margin-left: 0 !important; }
-      .mobile-menu-btn { display: flex !important; }
-      #plano-salon { height: 350px; }
-      .mesa-plano { width: 65px; height: 65px; }
+    /* Responsive móvil */
+    @media (max-width: 768px) {
+      aside#sidebar { display: none !important; }
+      #main-content { margin-left: 0 !important; padding-bottom: 70px; }
+      #mobile-nav { display: flex !important; }
+      #plano-salon { height: 340px; }
+      .mesa-plano { width: 64px; height: 64px; font-size: 12px; }
+      #panel-lateral { width: 100%; right: -100%; }
+      #modal-box { margin: 8px; padding: 16px; border-radius: 16px; }
+      .grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
     }
+    /* Navbar móvil inferior */
+    #mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid #f1f5f9;
+      z-index: 30;
+      padding: 8px 0 12px;
+      justify-content: space-around;
+    }
+    .mobile-nav-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px; padding: 4px 12px; border-radius: 8px;
+      font-size: 10px; color: #9ca3af; cursor: pointer;
+      transition: color 0.15s;
+    }
+    .mobile-nav-item.active { color: #16a34a; }
+    .mobile-nav-item .icon { font-size: 20px; line-height: 1; }
   </style>
 </head>
 <body class="bg-gray-50 min-h-screen flex">
@@ -141,13 +163,6 @@
               <div class="flex items-center gap-2">
                 <span class="text-xl font-semibold text-gray-900" id="precio-corriente-display">$0</span>
                 <button onclick="editarPrecioConfig('corriente')" class="text-xs text-green-600 hover:underline">Editar</button>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="text-xs text-gray-500 mb-1">Precio sopa (aparte)</div>
-              <div class="flex items-center gap-2">
-                <span class="text-xl font-semibold text-gray-900" id="precio-sopa-display">$0</span>
-                <button onclick="editarPrecioConfig('sopa')" class="text-xs text-green-600 hover:underline">Editar</button>
               </div>
             </div>
             <div class="stat-card">
@@ -298,6 +313,9 @@
   <!-- ÁREA DE IMPRESIÓN -->
   <div id="print-area" class="hidden"></div>
 
+  <!-- NAVBAR MÓVIL INFERIOR -->
+  <nav id="mobile-nav"></nav>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -374,37 +392,57 @@
     function buildNav(rol) {
       const menus = {
         admin:[
-          {id:'plano',icon:'▦',label:'Plano de mesas'},
-          {id:'menu',icon:'🍽',label:'Menú y precios'},
-          {id:'gastos',icon:'💸',label:'Gastos'},
-          {id:'reportes',icon:'📊',label:'Reportes'},
-          {id:'usuarios',icon:'👥',label:'Usuarios'},
-          {id:'config',icon:'⚙️',label:'Configuración'},
+          {id:'plano',icon:'▦',label:'Plano',labelFull:'Plano de mesas'},
+          {id:'menu',icon:'🍽',label:'Menú',labelFull:'Menú y precios'},
+          {id:'gastos',icon:'💸',label:'Gastos',labelFull:'Gastos'},
+          {id:'reportes',icon:'📊',label:'Reportes',labelFull:'Reportes'},
+          {id:'usuarios',icon:'👥',label:'Usuarios',labelFull:'Usuarios'},
+          {id:'config',icon:'⚙️',label:'Config',labelFull:'Configuración'},
         ],
         cajero:[
-          {id:'plano',icon:'▦',label:'Plano de mesas'},
-          {id:'caja',icon:'💳',label:'Caja'},
-          {id:'gastos',icon:'💸',label:'Gastos'},
-          {id:'reportes',icon:'📊',label:'Reportes'},
+          {id:'plano',icon:'▦',label:'Plano',labelFull:'Plano de mesas'},
+          {id:'caja',icon:'💳',label:'Caja',labelFull:'Caja'},
+          {id:'gastos',icon:'💸',label:'Gastos',labelFull:'Gastos'},
+          {id:'reportes',icon:'📊',label:'Reportes',labelFull:'Reportes'},
         ],
         mesero:[
-          {id:'plano',icon:'▦',label:'Plano de mesas'},
-          {id:'pedidos',icon:'📋',label:'Mis pedidos'},
+          {id:'plano',icon:'▦',label:'Plano',labelFull:'Plano de mesas'},
+          {id:'pedidos',icon:'📋',label:'Pedidos',labelFull:'Mis pedidos'},
         ]
       };
       const items = menus[rol]||menus.mesero;
+
+      // Sidebar desktop
       document.getElementById('nav-menu').innerHTML = items.map((m,i)=>
-        `<div class="nav-item${i===0?' active':''}" onclick="showSection('${m.id}',this)" data-section="${m.id}">${m.icon} ${m.label}</div>`
+        `<div class="nav-item${i===0?' active':''}" onclick="showSection('${m.id}',this)" data-section="${m.id}">${m.icon} ${m.labelFull}</div>`
       ).join('');
+
+      // Navbar móvil inferior
+      document.getElementById('mobile-nav').innerHTML = items.map((m,i)=>
+        `<div class="mobile-nav-item${i===0?' active':''}" onclick="showSectionMobile('${m.id}',this)" data-section-mobile="${m.id}">
+          <span class="icon">${m.icon}</span>
+          <span>${m.label}</span>
+        </div>`
+      ).join('');
+
       // Acciones del plano según rol
       const pa = document.getElementById('plano-actions');
       if(rol==='admin'){
         pa.innerHTML=`
-          <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-4 py-2 rounded-lg hover:bg-gray-50">✏️ Editar plano</button>
-          <button id="btn-guardar-pos" onclick="guardarPosiciones()" class="hidden text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">💾 Guardar posiciones</button>
-          <button onclick="abrirModalCrearMesa()" class="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">+ Mesa</button>`;
+          <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-3 py-2 rounded-lg hover:bg-gray-50">✏️ Editar</button>
+          <button id="btn-guardar-pos" onclick="guardarPosiciones()" class="hidden text-sm bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700">💾 Guardar</button>
+          <button onclick="abrirModalCrearMesa()" class="text-sm bg-green-600 text-white px-3 py-2 rounded-lg hover:bg-green-700">+ Mesa</button>`;
       }
     }
+
+    window.showSectionMobile = (id, el) => {
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-item').forEach(n=>n.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+      document.getElementById('sec-'+id)?.classList.add('active');
+      if(el) el.classList.add('active');
+      document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
+    };
 
     window.showSection = (id, el) => {
       document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -483,7 +521,6 @@
 
     function actualizarPrecios() {
       document.getElementById('precio-corriente-display').textContent  = formatCOP(configNegocio.precioCorriente);
-      document.getElementById('precio-sopa-display').textContent       = formatCOP(configNegocio.precioSopa);
       document.getElementById('precio-desechables-display').textContent= formatCOP(configNegocio.precioDesechables);
     }
 
@@ -501,8 +538,8 @@
     };
 
     window.editarPrecioConfig = (tipo) => {
-      const labels = {corriente:'Precio almuerzo corriente',sopa:'Precio sopa',desechables:'Precio desechables'};
-      const keys   = {corriente:'precioCorriente',sopa:'precioSopa',desechables:'precioDesechables'};
+      const labels = {corriente:'Precio almuerzo corriente',desechables:'Precio desechables (llevar)'};
+      const keys   = {corriente:'precioCorriente',desechables:'precioDesechables'};
       showModal(`
         <h3 class="text-base font-semibold mb-4">Editar precio</h3>
         <div class="space-y-3">
@@ -1152,7 +1189,8 @@
             ${(opciones||[]).map(o=>`
               <div class="flex items-center gap-1 px-3 py-1 rounded-full border text-xs ${o.activo?'bg-green-50 border-green-300 text-green-800':'bg-gray-50 border-gray-200 text-gray-400'}">
                 <span>${o.nombre}</span>
-                <button onclick="toggleOpcion('${nombre}','${o.nombre}',${!o.activo})" class="ml-1 hover:opacity-70">${o.activo?'✓':'○'}</button>
+                <button onclick="toggleOpcion('${nombre}','${o.nombre}',${!o.activo})" class="ml-1 hover:opacity-70" title="${o.activo?'Desactivar':'Activar'}">${o.activo?'✓':'○'}</button>
+                <button onclick="eliminarOpcion('${nombre}','${o.nombre}')" class="ml-0.5 text-red-400 hover:text-red-600" title="Eliminar opción">✕</button>
               </div>`).join('')}
           </div>
         </div>`).join('');
@@ -1182,6 +1220,14 @@
       if(!confirm(`¿Eliminar el componente "${nombre}"?`)) return;
       const comp=corrienteData.componentes||{};
       delete comp[nombre];
+      await setDoc(doc(db,'menu_corriente','hoy'),{componentes:comp});
+    };
+
+    window.eliminarOpcion = async (componente, opcionNombre) => {
+      if(!confirm(`¿Eliminar la opción "${opcionNombre}" de ${componente}?`)) return;
+      const comp=corrienteData.componentes||{};
+      if(!comp[componente]) return;
+      comp[componente] = comp[componente].filter(o=>o.nombre!==opcionNombre);
       await setDoc(doc(db,'menu_corriente','hoy'),{componentes:comp});
     };
 
