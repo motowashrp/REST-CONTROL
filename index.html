@@ -15,15 +15,21 @@
     /* Plano elegante */
     #plano-salon{
       position:relative;
-      background: radial-gradient(ellipse at 20% 20%, #2d4a3e 0%, #1a2f25 40%, #0f1e18 100%);
+      background: 
+        linear-gradient(135deg, rgba(0,0,0,0.15) 25%, transparent 25%) -10px 0,
+        linear-gradient(225deg, rgba(0,0,0,0.12) 25%, transparent 25%) -10px 0,
+        linear-gradient(315deg, rgba(0,0,0,0.1) 25%, transparent 25%),
+        linear-gradient(45deg, rgba(0,0,0,0.12) 25%, transparent 25%);
+      background-size: 20px 20px;
+      background-color: #8B5E3C;
       border:none;border-radius:20px;width:100%;
       height:calc(100vh - 180px);overflow:hidden;min-height:300px;
-      box-shadow:inset 0 0 80px rgba(0,0,0,0.4), 0 4px 24px rgba(0,0,0,0.3);
+      box-shadow:inset 0 0 60px rgba(0,0,0,0.25), 0 4px 24px rgba(0,0,0,0.2);
     }
     #plano-salon::before{
       content:'';position:absolute;inset:0;
-      background-image: repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.03) 39px,rgba(255,255,255,0.03) 40px),
-        repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.03) 39px,rgba(255,255,255,0.03) 40px);
+      background-image: repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(0,0,0,0.08) 59px,rgba(0,0,0,0.08) 60px),
+        repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(0,0,0,0.08) 59px,rgba(0,0,0,0.08) 60px);
       border-radius:20px;pointer-events:none;
     }
     .mesa-plano{
@@ -33,34 +39,35 @@
     .mesa-plano:hover{transform:scale(1.05);z-index:10;}
     .mesa-drag{z-index:100;transform:scale(1.08);opacity:0.95;}
     .mesa-libre .mesa-circle{
-      background:radial-gradient(circle at 35% 35%, #4a5568, #2d3748);
-      border:2px solid rgba(255,255,255,0.15);
-      box-shadow:0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-      color:#a0aec0;
+      background:radial-gradient(circle at 35% 35%, #6b7280, #4b5563);
+      border:2px solid rgba(255,255,255,0.25);
+      box-shadow:0 6px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+      color:#e5e7eb;
     }
     .mesa-ocupada .mesa-circle{
-      background:radial-gradient(circle at 35% 35%, #276749, #1a4731);
-      border:2px solid rgba(72,199,142,0.5);
-      box-shadow:0 4px 20px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
-      color:#6ee7a0;
+      background:radial-gradient(circle at 35% 35%, #16a34a, #14532d);
+      border:2px solid rgba(74,222,128,0.6);
+      box-shadow:0 6px 24px rgba(34,197,94,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+      color:#bbf7d0;
     }
     .mesa-lista .mesa-circle{
-      background:radial-gradient(circle at 35% 35%, #9a6f00, #6b4c00);
-      border:2px solid rgba(234,179,8,0.5);
-      box-shadow:0 4px 20px rgba(234,179,8,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
-      color:#fde68a;
+      background:radial-gradient(circle at 35% 35%, #d97706, #92400e);
+      border:2px solid rgba(251,191,36,0.7);
+      box-shadow:0 6px 24px rgba(234,179,8,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+      color:#fef3c7;
     }
     .mesa-circle{
       border-radius:50%;display:flex;flex-direction:column;align-items:center;
       justify-content:center;position:relative;
     }
     .silla{
-      position:absolute;border-radius:4px;
-      background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+      position:absolute;border-radius:5px;
+      background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.3);
+      box-shadow:0 2px 4px rgba(0,0,0,0.2);
     }
-    .mesa-libre .silla{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.12);}
-    .mesa-ocupada .silla{background:rgba(72,199,142,0.2);border-color:rgba(72,199,142,0.3);}
-    .mesa-lista .silla{background:rgba(234,179,8,0.2);border-color:rgba(234,179,8,0.3);}
+    .mesa-libre .silla{background:rgba(200,200,200,0.25);border-color:rgba(255,255,255,0.25);}
+    .mesa-ocupada .silla{background:rgba(74,222,128,0.3);border-color:rgba(74,222,128,0.5);}
+    .mesa-lista .silla{background:rgba(251,191,36,0.3);border-color:rgba(251,191,36,0.5);}
     .metodo-btn{border:2px solid #e5e7eb;border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;font-size:12px;transition:all 0.15s;}
     .metodo-btn.selected{border-color:#16a34a;background:#f0fdf4;color:#15803d;font-weight:500;}
     #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center;}
@@ -367,7 +374,9 @@ onAuthStateChanged(auth,async user=>{
   initListeners();
   cargarConfig();
 });
-document.getElementById('btn-logout').addEventListener('click',async()=>{await signOut(auth);window.location.href='login.html';});
+const doLogoutFn=async()=>{await signOut(auth);window.location.href='login.html';};
+window.doLogout=doLogoutFn;
+document.getElementById('btn-logout').addEventListener('click',doLogoutFn);
 
 // ── NAVEGACIÓN ────────────────────────────────────
 function buildNav(rol){
@@ -402,7 +411,7 @@ function buildNav(rol){
   document.getElementById('mobile-nav').innerHTML=items.map((m,i)=>
     `<div class="mob-item${i===0?' active':''}" onclick="showSectionMob('${m.id}',this)">
       <span class="icon">${m.icon}</span><span>${m.label}</span></div>`).join('')+
-    `<div class="mob-item" onclick="doLogout()"><span class="icon">🚪</span><span>Salir</span></div>`;
+    `<div class="mob-item" onclick="window.doLogout()"><span class="icon">🚪</span><span>Salir</span></div>`;
   if(rol==='admin'){
     document.getElementById('plano-actions').innerHTML=`
       <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-3 py-2 rounded-lg">✏️ Editar plano</button>
@@ -489,14 +498,6 @@ window.guardarPrecioConfig=async(key)=>{
 // ════════════════════════════════════════════════════
 // PLANO — escalado responsivo para todos los usuarios
 // ════════════════════════════════════════════════════
-function getEscala(){
-  const salon=document.getElementById('plano-salon');
-  const W=salon.offsetWidth||400;
-  const H=salon.offsetHeight||300;
-  const BASE_W=600, BASE_H=500;
-  return {sx:W/BASE_W, sy:H/BASE_H, mesaW:isMobile()?56:72, mesaH:isMobile()?56:72};
-}
-
 function getEscala(){
   const salon=document.getElementById('plano-salon');
   const W=salon.offsetWidth||600;
@@ -602,9 +603,10 @@ function makeDraggable(el,mesaId,sx,sy){
   let ox,oy,ol,ot; el.style.cursor='grab';
   const move=(cx,cy)=>{
     const salon=document.getElementById('plano-salon');
-    const {mesaW,mesaH}=getEscala();
-    const nx=Math.max(0,Math.min(ol+(cx-ox),salon.offsetWidth-mesaW-4));
-    const ny=Math.max(0,Math.min(ot+(cy-oy),salon.offsetHeight-mesaH-4));
+    const {sz}=getEscala();
+    const total=sz+Math.round(sz*0.22)*2;
+    const nx=Math.max(0,Math.min(ol+(cx-ox),salon.offsetWidth-total-4));
+    const ny=Math.max(0,Math.min(ot+(cy-oy),salon.offsetHeight-total-4));
     el.style.left=nx+'px'; el.style.top=ny+'px';
   };
   el.addEventListener('mousedown',e=>{
