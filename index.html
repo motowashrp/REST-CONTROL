@@ -12,13 +12,55 @@
     .nav-item:hover{background:#f3f4f6;color:#111827;} .nav-item.active{background:#f0fdf4;color:#166534;font-weight:500;}
     .badge{font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
     .stat-card{background:#f9fafb;border-radius:12px;padding:14px;}
-    #plano-salon{position:relative;background:#f8fafc;border:2px dashed #cbd5e1;border-radius:16px;width:100%;height:calc(100vh - 180px);overflow:hidden;min-height:280px;}
-    .mesa-plano{position:absolute;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px solid;transition:box-shadow 0.2s;user-select:none;}
-    .mesa-plano:hover{box-shadow:0 4px 12px rgba(0,0,0,0.15);}
-    .mesa-libre{background:#f1f5f9;border-color:#94a3b8;color:#475569;}
-    .mesa-ocupada{background:#dcfce7;border-color:#16a34a;color:#15803d;}
-    .mesa-lista{background:#fef9c3;border-color:#ca8a04;color:#92400e;}
-    .mesa-drag{box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:100;opacity:0.9;}
+    /* Plano elegante */
+    #plano-salon{
+      position:relative;
+      background: radial-gradient(ellipse at 20% 20%, #2d4a3e 0%, #1a2f25 40%, #0f1e18 100%);
+      border:none;border-radius:20px;width:100%;
+      height:calc(100vh - 180px);overflow:hidden;min-height:300px;
+      box-shadow:inset 0 0 80px rgba(0,0,0,0.4), 0 4px 24px rgba(0,0,0,0.3);
+    }
+    #plano-salon::before{
+      content:'';position:absolute;inset:0;
+      background-image: repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,0.03) 39px,rgba(255,255,255,0.03) 40px),
+        repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,0.03) 39px,rgba(255,255,255,0.03) 40px);
+      border-radius:20px;pointer-events:none;
+    }
+    .mesa-plano{
+      position:absolute;cursor:pointer;user-select:none;
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .mesa-plano:hover{transform:scale(1.05);z-index:10;}
+    .mesa-drag{z-index:100;transform:scale(1.08);opacity:0.95;}
+    .mesa-libre .mesa-circle{
+      background:radial-gradient(circle at 35% 35%, #4a5568, #2d3748);
+      border:2px solid rgba(255,255,255,0.15);
+      box-shadow:0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+      color:#a0aec0;
+    }
+    .mesa-ocupada .mesa-circle{
+      background:radial-gradient(circle at 35% 35%, #276749, #1a4731);
+      border:2px solid rgba(72,199,142,0.5);
+      box-shadow:0 4px 20px rgba(34,197,94,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+      color:#6ee7a0;
+    }
+    .mesa-lista .mesa-circle{
+      background:radial-gradient(circle at 35% 35%, #9a6f00, #6b4c00);
+      border:2px solid rgba(234,179,8,0.5);
+      box-shadow:0 4px 20px rgba(234,179,8,0.35), inset 0 1px 0 rgba(255,255,255,0.15);
+      color:#fde68a;
+    }
+    .mesa-circle{
+      border-radius:50%;display:flex;flex-direction:column;align-items:center;
+      justify-content:center;position:relative;
+    }
+    .silla{
+      position:absolute;border-radius:4px;
+      background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);
+    }
+    .mesa-libre .silla{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.12);}
+    .mesa-ocupada .silla{background:rgba(72,199,142,0.2);border-color:rgba(72,199,142,0.3);}
+    .mesa-lista .silla{background:rgba(234,179,8,0.2);border-color:rgba(234,179,8,0.3);}
     .metodo-btn{border:2px solid #e5e7eb;border-radius:12px;padding:10px 6px;text-align:center;cursor:pointer;font-size:12px;transition:all 0.15s;}
     .metodo-btn.selected{border-color:#16a34a;background:#f0fdf4;color:#15803d;font-weight:500;}
     #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center;}
@@ -41,7 +83,7 @@
       aside#sidebar{display:none!important;}
       #main-content{margin-left:0!important;padding-bottom:75px;}
       #mobile-nav{display:flex!important;}
-      #plano-salon{height:calc(100vh - 160px);min-height:250px;}
+      #plano-salon{height:calc(100vh - 155px);min-height:260px;}
       #panel-lateral{width:100%;right:-100%;}
       #modal-box{margin:8px;padding:16px;border-radius:16px;}
     }
@@ -73,12 +115,15 @@
       <div class="flex gap-2" id="plano-actions"></div>
     </div>
     <div class="p-4">
-      <div class="flex gap-4 mb-3 flex-wrap">
-        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-slate-200 border border-slate-400"></div>Libre</div>
-        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-green-200 border border-green-500"></div>Ocupada</div>
-        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded bg-yellow-200 border border-yellow-500"></div>Lista para cobrar</div>
+      <div class="flex gap-4 mb-3 flex-wrap items-center">
+        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded-full bg-gray-500"></div>Libre</div>
+        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded-full bg-green-500"></div>Ocupada</div>
+        <div class="flex items-center gap-1.5 text-xs text-gray-500"><div class="w-3 h-3 rounded-full bg-yellow-500"></div>Lista para cobrar</div>
       </div>
-      <div id="plano-salon"><div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm" id="plano-loading">Cargando mesas...</div></div>
+      <div id="plano-salon">
+        <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm" id="plano-loading">Cargando mesas...</div>
+        <div style="position:absolute;bottom:12px;right:16px;font-size:11px;color:rgba(255,255,255,0.2);font-style:italic;letter-spacing:1px;" id="plano-nombre-rest"></div>
+      </div>
       <div id="modo-edicion-info" class="hidden mt-3 text-xs text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">✏️ Modo edición activo — arrastra las mesas. ✕ elimina mesas libres.</div>
     </div>
   </div>
@@ -371,7 +416,9 @@ window.showSection=(id,el)=>{
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('sec-'+id)?.classList.add('active');
   if(el) el.classList.add('active');
+  if(id==='plano') renderPlano();
   if(id==='pedidos') renderPedidosModulo();
+  if(id==='reportes'){initFiltrosReporte();renderReportes();}
 };
 window.showSectionMob=(id,el)=>{
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -379,7 +426,9 @@ window.showSectionMob=(id,el)=>{
   document.getElementById('sec-'+id)?.classList.add('active');
   if(el) el.classList.add('active');
   document.querySelector(`[data-section="${id}"]`)?.classList.add('active');
+  if(id==='plano') renderPlano();
   if(id==='pedidos') renderPedidosModulo();
+  if(id==='reportes'){initFiltrosReporte();renderReportes();}
 };
 
 // ── LISTENERS ─────────────────────────────────────
@@ -448,34 +497,88 @@ function getEscala(){
   return {sx:W/BASE_W, sy:H/BASE_H, mesaW:isMobile()?56:72, mesaH:isMobile()?56:72};
 }
 
+function getEscala(){
+  const salon=document.getElementById('plano-salon');
+  const W=salon.offsetWidth||600;
+  const H=salon.offsetHeight||400;
+  const BASE_W=700, BASE_H=500;
+  const sz=isMobile()?56:72;
+  return {sx:W/BASE_W, sy:H/BASE_H, sz};
+}
+
 function renderPlano(){
   const salon=document.getElementById('plano-salon');
   document.getElementById('plano-loading').style.display='none';
   salon.querySelectorAll('.mesa-plano').forEach(m=>m.remove());
+  // Mostrar nombre del restaurante
+  const nr=document.getElementById('plano-nombre-rest');
+  if(nr) nr.textContent=(configNegocio.nombre||'Rest-Control').toUpperCase();
+
   if(!mesasData.length){
     document.getElementById('plano-loading').style.display='flex';
-    document.getElementById('plano-loading').textContent='Sin mesas configuradas.';
+    document.getElementById('plano-loading').textContent='Sin mesas. El admin puede agregar con + Mesa';
     return;
   }
-  const {sx,sy,mesaW,mesaH}=getEscala();
+  const {sx,sy,sz}=getEscala();
+  const pad=Math.round(sz*0.22); // espacio para sillas
+
   mesasData.forEach(mesa=>{
     const peds=pedidosData.filter(p=>p.mesaId===mesa.id&&!['pagado','cancelado'].includes(p.estado));
     const listos=peds.length&&peds.every(p=>p.estado==='entregado');
     const estado=mesa.estado==='ocupada'?(listos?'lista':'ocupada'):'libre';
+
+    // Contenedor total (incluye sillas)
+    const total=sz+pad*2;
     const el=document.createElement('div');
     el.className=`mesa-plano mesa-${estado}`;
     el.id=`mp-${mesa.id}`;
-    el.style.width=mesaW+'px'; el.style.height=mesaH+'px';
-    el.style.fontSize=isMobile()?'10px':'12px';
-    // Escalar posición
-    const x=Math.max(0,Math.min((mesa.x||50)*sx, salon.offsetWidth-mesaW-4));
-    const y=Math.max(0,Math.min((mesa.y||50)*sy, salon.offsetHeight-mesaH-4));
+    el.style.width=total+'px';
+    el.style.height=total+'px';
+
+    // Posición escalada
+    const x=Math.max(0,Math.min((mesa.x||60)*sx, salon.offsetWidth-total-4));
+    const y=Math.max(0,Math.min((mesa.y||60)*sy, salon.offsetHeight-total-4));
     el.style.left=x+'px'; el.style.top=y+'px';
+
+    // Sillas (arriba, abajo, izquierda, derecha)
+    const sw=Math.round(sz*0.28), sh=Math.round(sz*0.16);
+    const sillas=`
+      <div class="silla" style="width:${sw}px;height:${sh}px;top:${pad-sh}px;left:${(total-sw)/2}px;border-radius:4px 4px 0 0;"></div>
+      <div class="silla" style="width:${sw}px;height:${sh}px;bottom:${pad-sh}px;left:${(total-sw)/2}px;border-radius:0 0 4px 4px;"></div>
+      <div class="silla" style="width:${sh}px;height:${sw}px;left:${pad-sh}px;top:${(total-sw)/2}px;border-radius:4px 0 0 4px;"></div>
+      <div class="silla" style="width:${sh}px;height:${sw}px;right:${pad-sh}px;top:${(total-sw)/2}px;border-radius:0 4px 4px 0;"></div>`;
+
+    // Tiempo ocupada
+    let tiempoStr='';
+    if(mesa.estado==='ocupada'&&mesa.ocupadaEn){
+      const dt=mesa.ocupadaEn.toDate?mesa.ocupadaEn.toDate():new Date(mesa.ocupadaEn);
+      const min=Math.floor((Date.now()-dt)/60000);
+      tiempoStr=min<60?`${min}m`:`${Math.floor(min/60)}h${min%60}m`;
+    }
+
+    // Mesa circular
+    const fs=isMobile()?12:14;
+    const fsSmall=isMobile()?9:10;
+    const circle=`<div class="mesa-circle" style="width:${sz}px;height:${sz}px;margin:${pad}px auto 0;">
+      <div style="font-size:${fs}px;font-weight:800;letter-spacing:0.5px;line-height:1">${mesa.numero}</div>
+      ${mesa.estado==='ocupada'?`<div style="font-size:${fsSmall}px;opacity:0.8;margin-top:2px">👤${mesa.personas||0}</div>`:''}
+      ${tiempoStr?`<div style="font-size:${fsSmall}px;opacity:0.7;margin-top:1px">${tiempoStr}</div>`:''}
+      ${peds.length&&mesa.estado==='libre'?`<div style="font-size:${fsSmall}px;opacity:0.7">${peds.length}ped</div>`:''}
+    </div>`;
+
+    // Botón eliminar
     const btnElim=modoEdicion&&mesa.estado==='libre'
-      ?`<div onclick="event.stopPropagation();eliminarMesa('${mesa.id}',${mesa.numero})" style="position:absolute;top:2px;right:2px;background:#fee2e2;color:#dc2626;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer">✕</div>`:'';
-    el.innerHTML=`<div style="font-weight:700">${mesa.numero}</div>
-      <div style="font-size:10px">${mesa.estado==='ocupada'?`👤${mesa.personas||0}`:'libre'}</div>
-      <div style="font-size:10px;opacity:0.7">${peds.length?peds.length+'ped':''}</div>${btnElim}`;
+      ?`<div onclick="event.stopPropagation();eliminarMesa('${mesa.id}',${mesa.numero})"
+          style="position:absolute;top:2px;right:2px;background:#ef4444;color:white;border-radius:50%;
+          width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;z-index:10">✕</div>`:'';
+
+    // Badge estado lista para cobrar
+    const badge=estado==='lista'
+      ?`<div style="position:absolute;top:${pad}px;left:50%;transform:translateX(-50%);
+          background:#d97706;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;
+          border-radius:99px;white-space:nowrap;letter-spacing:0.5px">COBRAR</div>`:'';
+
+    el.innerHTML=sillas+circle+btnElim+badge;
     el.addEventListener('click',()=>handleClickMesa(mesa));
     if(modoEdicion&&currentProfile?.rol==='admin') makeDraggable(el,mesa.id,sx,sy);
     salon.appendChild(el);
@@ -713,61 +816,126 @@ window.eliminarPedidoModulo=async(pedidoId)=>{
 // ════════════════════════════════════════════════════
 // FORMULARIO DE PEDIDO
 // ════════════════════════════════════════════════════
-window.abrirFormPedido=(mesaId,mesaNum,editId='')=>{
-  cerrarPanel();
-  const pedEdit=editId?pedidosData.find(p=>p.id===editId):null;
+// Estado del flujo de pedido por personas
+let pedidoFlow={mesaId:null,mesaNum:0,personas:1,personaActual:1,pedidos:[],editId:''};
+
+function buildFormPedidoHTML(personaActual,totalPersonas,editData=null){
   const cartaDisp=cartaData.filter(p=>p.activo);
   const adicsDisp=adicionalesData.filter(a=>a.activo);
   const comp=corrienteData.componentes||{};
   let htmlComp='';
   Object.keys(comp).forEach(k=>{
     const ops=comp[k].filter(o=>o.activo);if(!ops.length)return;
-    const prev=pedEdit?.selecciones?.[k]||[];
-    htmlComp+=`<div class="mb-2"><label class="text-xs font-semibold text-gray-600 uppercase">${k}</label>
+    const prev=editData?.selecciones?.[k]||[];
+    htmlComp+=`<div class="mb-2"><label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">${k}</label>
       <div class="flex flex-wrap gap-2 mt-1">${ops.map(o=>`
         <label class="flex items-center gap-1.5 cursor-pointer bg-white border border-gray-200 rounded-lg px-3 py-1.5 hover:border-green-400 text-sm">
-          <input type="checkbox" name="comp-${k}" value="${o.nombre}" ${Array.isArray(prev)&&prev.includes(o.nombre)?'checked':''} class="accent-green-600"/>${o.nombre}</label>`).join('')}
+          <input type="checkbox" name="comp-${k}" value="${o.nombre}" ${Array.isArray(prev)&&prev.includes(o.nombre)?'checked':''} class="accent-green-600"/>${o.nombre}
+        </label>`).join('')}
       </div></div>`;
   });
-  const esCorriente=!pedEdit||pedEdit.tipo==='corriente';
-  showModal(`
-    <h3 class="text-base font-semibold mb-3">${pedEdit?'Editar':'Nuevo'} pedido — Mesa ${mesaNum}</h3>
+  const esCorriente=!editData||editData.tipo==='corriente';
+  const esUltima=personaActual>=totalPersonas;
+  const isEdit=!!pedidoFlow.editId;
+
+  return `
+    <div class="flex items-center gap-3 mb-4 p-3 bg-green-50 rounded-xl">
+      <div class="w-9 h-9 rounded-full bg-green-600 flex items-center justify-center text-white font-bold text-sm">${personaActual}</div>
+      <div>
+        <div class="text-sm font-semibold text-gray-800">Persona ${personaActual} de ${totalPersonas}</div>
+        <div class="text-xs text-gray-500">Mesa ${pedidoFlow.mesaNum}</div>
+      </div>
+      <div class="ml-auto flex gap-1">
+        ${Array.from({length:totalPersonas},(_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<personaActual?'#16a34a':'#d1d5db'}"></div>`).join('')}
+      </div>
+    </div>
     <div class="space-y-3">
       <div>
-        <label class="text-xs font-medium text-gray-600">Tipo</label>
+        <label class="text-xs font-medium text-gray-600">Tipo de pedido</label>
         <div class="grid grid-cols-2 gap-2 mt-1">
           <button onclick="selTipo('corriente',this)" id="tipo-corriente" class="tipo-btn border-2 ${esCorriente?'border-green-600 bg-green-50 text-green-800':'border-gray-200 text-gray-600'} rounded-lg py-2 text-sm">🍽 Corriente</button>
           <button onclick="selTipo('carta',this)" id="tipo-carta" class="tipo-btn border-2 ${!esCorriente?'border-green-600 bg-green-50 text-green-800':'border-gray-200 text-gray-600'} rounded-lg py-2 text-sm">🍴 A la carta</button>
         </div>
       </div>
       <div id="form-corriente" class="${!esCorriente?'hidden':''} bg-gray-50 rounded-xl p-3">
-        ${htmlComp||'<p class="text-xs text-gray-400">Sin componentes configurados.</p>'}
+        ${htmlComp||'<p class="text-xs text-gray-400">Sin componentes configurados para hoy.</p>'}
       </div>
-      <div id="form-carta" class="${esCorriente?'hidden':''} space-y-1 max-h-40 overflow-y-auto bg-gray-50 rounded-xl p-3">
+      <div id="form-carta" class="${esCorriente?'hidden':''} space-y-1 max-h-36 overflow-y-auto bg-gray-50 rounded-xl p-3">
         ${cartaDisp.map(p=>`
           <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-white rounded px-1 text-sm">
-            <input type="checkbox" value="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" class="carta-check accent-green-600" ${(pedEdit?.items||[]).some(i=>i.id===p.id)?'checked':''}/>
-            <span class="flex-1">${p.nombre}</span><span class="text-green-700 font-medium">${fCOP(p.precio)}</span></label>`).join('')||'<p class="text-xs text-gray-400">Sin platos.</p>'}
+            <input type="checkbox" value="${p.id}" data-nombre="${p.nombre}" data-precio="${p.precio}" class="carta-check accent-green-600" ${(editData?.items||[]).some(i=>i.id===p.id)?'checked':''}/>
+            <span class="flex-1">${p.nombre}</span><span class="text-green-700 font-medium">${fCOP(p.precio)}</span>
+          </label>`).join('')||'<p class="text-xs text-gray-400">Sin platos.</p>'}
       </div>
       ${adicsDisp.length?`<div>
-        <label class="text-xs font-semibold text-gray-600 uppercase">Adicionales</label>
-        <div class="space-y-1 mt-1 max-h-28 overflow-y-auto bg-gray-50 rounded-xl p-3">
+        <label class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Adicionales</label>
+        <div class="space-y-1 mt-1 max-h-24 overflow-y-auto bg-gray-50 rounded-xl p-3">
           ${adicsDisp.map(a=>`
             <label class="flex items-center gap-2 py-1 cursor-pointer hover:bg-white rounded px-1 text-sm">
-              <input type="checkbox" value="${a.id}" data-nombre="${a.nombre}" data-precio="${a.precio}" class="adic-check accent-green-600" ${(pedEdit?.adicionales||[]).some(x=>x.id===a.id)?'checked':''}/>
-              <span class="flex-1">${a.nombre}</span><span class="text-green-700 font-medium">${fCOP(a.precio)}</span></label>`).join('')}
+              <input type="checkbox" value="${a.id}" data-nombre="${a.nombre}" data-precio="${a.precio}" class="adic-check accent-green-600" ${(editData?.adicionales||[]).some(x=>x.id===a.id)?'checked':''}/>
+              <span class="flex-1">${a.nombre}</span><span class="text-green-700 font-medium">${fCOP(a.precio)}</span>
+            </label>`).join('')}
         </div></div>`:''}
       <div class="flex items-center gap-2">
-        <input type="checkbox" id="para-llevar" class="accent-green-600" ${pedEdit?.paraLlevar?'checked':''}/>
-        <label class="text-sm text-gray-600">Para llevar <span class="text-green-700">(+${fCOP(configNegocio.precioDesechables)})</span></label>
+        <input type="checkbox" id="para-llevar" class="accent-green-600" ${editData?.paraLlevar?'checked':''}/>
+        <label class="text-sm text-gray-600">Para llevar <span class="text-green-700 font-medium">(+${fCOP(configNegocio.precioDesechables)})</span></label>
       </div>
       <div><label class="text-xs font-medium text-gray-600">Observaciones</label>
-        <textarea id="observaciones" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 resize-none" placeholder="Sin cebolla...">${pedEdit?.observaciones||''}</textarea></div>
+        <textarea id="observaciones" rows="2" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm mt-1 resize-none" placeholder="Sin cebolla...">${editData?.observaciones||''}</textarea></div>
     </div>
     <div class="flex gap-2 mt-4">
-      <button onclick="closeModal()" class="flex-1 text-sm px-4 py-2.5 border border-gray-200 rounded-lg">Cancelar</button>
-      <button onclick="confirmarPedido('${mesaId}',${mesaNum},'${editId}')" class="flex-1 text-sm px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium">✓ Confirmar e imprimir 🖨</button>
-    </div>`);
+      <button onclick="closeModal()" class="flex-shrink-0 text-sm px-4 py-2.5 border border-gray-200 rounded-lg">Cancelar</button>
+      ${!esUltima&&!isEdit?
+        `<button onclick="siguientePersona()" class="flex-1 text-sm px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium">Siguiente persona →</button>`:
+        `<button onclick="confirmarPedido('${pedidoFlow.mesaId}',${pedidoFlow.mesaNum},'${pedidoFlow.editId}')" class="flex-1 text-sm px-4 py-2.5 bg-green-600 text-white rounded-lg font-medium">✓ Confirmar e imprimir 🖨</button>`
+      }
+    </div>`;
+}
+
+window.abrirFormPedido=(mesaId,mesaNum,editId='')=>{
+  cerrarPanel();
+  const pedEdit=editId?pedidosData.find(p=>p.id===editId):null;
+  const mesa=mesasData.find(m=>m.id===mesaId);
+  const personas=pedEdit?1:(mesa?.personas||1);
+  pedidoFlow={mesaId,mesaNum,personas,personaActual:1,pedidos:[],editId};
+  showModal(`<h3 class="text-base font-semibold mb-3">${pedEdit?'Editar':'Nuevo'} pedido — Mesa ${mesaNum}</h3>
+    <div id="form-persona-wrap">${buildFormPedidoHTML(1,personas,pedEdit)}</div>`);
+};
+
+function capturarPedidoPersona(){
+  const tipo=document.getElementById('tipo-corriente').classList.contains('border-green-600')?'corriente':'carta';
+  const paraLlevar=document.getElementById('para-llevar').checked;
+  const obs=document.getElementById('observaciones').value.trim();
+  const comp=corrienteData.componentes||{};
+  let items=[],total=0,selecciones={};
+  if(tipo==='corriente'){
+    total+=configNegocio.precioCorriente||0;
+    Object.keys(comp).forEach(k=>{
+      const chk=[...document.querySelectorAll(`input[name="comp-${k}"]:checked`)].map(c=>c.value);
+      if(chk.length)selecciones[k]=chk;
+    });
+  } else {
+    document.querySelectorAll('.carta-check:checked').forEach(c=>{
+      items.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1});
+      total+=parseFloat(c.dataset.precio);
+    });
+    if(!items.length) return null;
+  }
+  const adicionales=[];
+  document.querySelectorAll('.adic-check:checked').forEach(c=>{
+    adicionales.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio)});
+    total+=parseFloat(c.dataset.precio);
+  });
+  if(paraLlevar) total+=configNegocio.precioDesechables||0;
+  return {tipo,items,selecciones,adicionales,paraLlevar,observaciones:obs,total,persona:pedidoFlow.personaActual};
+}
+
+window.siguientePersona=()=>{
+  const ped=capturarPedidoPersona();
+  if(!ped){alert('Selecciona al menos un plato para esta persona.');return;}
+  pedidoFlow.pedidos.push(ped);
+  pedidoFlow.personaActual++;
+  document.getElementById('form-persona-wrap').innerHTML=buildFormPedidoHTML(pedidoFlow.personaActual,pedidoFlow.personas);
 };
 
 window.selTipo=(tipo,el)=>{
@@ -778,29 +946,39 @@ window.selTipo=(tipo,el)=>{
 };
 
 window.confirmarPedido=async(mesaId,mesaNum,editId='')=>{
-  const tipo=document.getElementById('tipo-corriente').classList.contains('border-green-600')?'corriente':'carta';
-  const paraLlevar=document.getElementById('para-llevar').checked;
-  const obs=document.getElementById('observaciones').value.trim();
-  const comp=corrienteData.componentes||{};
-  let items=[],total=0,selecciones={};
-  if(tipo==='corriente'){
-    total+=configNegocio.precioCorriente||0;
-    Object.keys(comp).forEach(k=>{const chk=[...document.querySelectorAll(`input[name="comp-${k}"]:checked`)].map(c=>c.value);if(chk.length)selecciones[k]=chk;});
+  // Capturar último pedido (puede ser el único si es 1 persona o edición)
+  const ultPed=capturarPedidoPersona();
+  if(!ultPed&&!editId){alert('Selecciona al menos un plato.');return;}
+  if(ultPed) pedidoFlow.pedidos.push(ultPed);
+
+  if(editId){
+    // Modo edición: un solo pedido
+    const p=pedidoFlow.pedidos[0]||ultPed;
+    if(!p){alert('Selecciona al menos un plato.');return;}
+    await updateDoc(doc(db,'pedidos',editId),{
+      ...p,mesaId,mesaNumero:mesaNum,estado:'en_cocina',
+      creadoPor:currentProfile.nombre||currentUser.email,
+      editadoEn:serverTimestamp()
+    });
+    closeModal();
+    const pedsMesa=pedidosData.filter(p=>p.mesaId===mesaId&&!['pagado','cancelado'].includes(p.estado));
+    imprimirComandaMesa(mesaNum,pedsMesa);
   } else {
-    document.querySelectorAll('.carta-check:checked').forEach(c=>{items.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio),cantidad:1});total+=parseFloat(c.dataset.precio);});
-    if(!items.length){alert('Selecciona al menos un plato.');return;}
+    // Guardar todos los pedidos de cada persona
+    const promises=pedidoFlow.pedidos.map(p=>addDoc(collection(db,'pedidos'),{
+      ...p, mesaId, mesaNumero:mesaNum, estado:'en_cocina',
+      creadoPor:currentProfile.nombre||currentUser.email,
+      creadoEn:serverTimestamp()
+    }));
+    await Promise.all(promises);
+    closeModal();
+    // Imprimir ticket con todos los pedidos de la mesa
+    const pedsMesa=pedidosData.filter(p=>p.mesaId===mesaId&&!['pagado','cancelado'].includes(p.estado));
+    const nuevosPeds=[...pedsMesa,...pedidoFlow.pedidos.map((p,i)=>({...p,id:`nuevo-${i}`}))];
+    imprimirComandaMesa(mesaNum,nuevosPeds);
   }
-  const adicionales=[];
-  document.querySelectorAll('.adic-check:checked').forEach(c=>{adicionales.push({id:c.value,nombre:c.dataset.nombre,precio:parseFloat(c.dataset.precio)});total+=parseFloat(c.dataset.precio);});
-  if(paraLlevar)total+=configNegocio.precioDesechables||0;
-  const data={mesaId,mesaNumero:mesaNum,tipo,items,selecciones,adicionales,paraLlevar,observaciones:obs,total,estado:'en_cocina',creadoPor:currentProfile.nombre||currentUser.email};
-  if(editId){await updateDoc(doc(db,'pedidos',editId),{...data,editadoEn:serverTimestamp()});}
-  else{data.creadoEn=serverTimestamp();await addDoc(collection(db,'pedidos'),data);}
-  closeModal();
-  // Imprimir ticket por MESA (todos los pedidos de la mesa)
-  const todosPedsMesa=pedidosData.filter(p=>p.mesaId===mesaId&&!['pagado','cancelado'].includes(p.estado));
-  const nuevosPeds=editId?todosPedsMesa:[...todosPedsMesa,{...data,id:'nuevo'}];
-  imprimirComandaMesa(mesaNum,nuevosPeds);
+  // Reabrir panel de mesa
+  setTimeout(()=>{const m=mesasData.find(x=>x.id===mesaId);if(m)abrirPanelMesa(m);},600);
 };
 
 let ticketParaImprimir='';
