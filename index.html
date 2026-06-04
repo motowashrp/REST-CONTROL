@@ -148,26 +148,74 @@
 
   <!-- REPORTES -->
   <div id="sec-reportes" class="section">
-    <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10"><h1 class="text-base font-semibold">Reportes</h1></div>
-    <div class="p-6">
-      <div class="flex gap-2 mb-6 border-b border-gray-100">
-        <button onclick="showReporteTab('diario',this)" class="reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600">Diario</button>
-        <button onclick="showReporteTab('mensual',this)" class="reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent">Mensual</button>
+    <div class="bg-white border-b border-gray-100 px-6 py-3 sticky top-0 z-10">
+      <h1 class="text-base font-semibold">Reportes</h1>
+    </div>
+    <div class="p-4 md:p-6">
+      <!-- Pestañas -->
+      <div class="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1">
+        <button onclick="showReporteTab('ventas',this)" class="reporte-tab flex-1 px-3 py-2 text-sm font-medium rounded-lg bg-white text-green-700 shadow-sm">📊 Ventas</button>
+        <button onclick="showReporteTab('historial',this)" class="reporte-tab flex-1 px-3 py-2 text-sm text-gray-500 rounded-lg">🕐 Historial</button>
+        <button onclick="showReporteTab('componentes',this)" class="reporte-tab flex-1 px-3 py-2 text-sm text-gray-500 rounded-lg">🍽 Componentes</button>
       </div>
-      <div id="tab-reporte-diario">
-        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-diario"></div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-4">Pagos por método</p><div id="chart-pagos" class="space-y-3"></div></div>
-          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-4">Más vendidos hoy</p><div id="top-platos-diario" class="space-y-3"></div></div>
+
+      <!-- TAB VENTAS -->
+      <div id="tab-reporte-ventas">
+        <!-- Filtros -->
+        <div class="flex gap-2 mb-5 flex-wrap">
+          <select id="filtro-rep-tipo" onchange="renderReportes()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm">
+            <option value="dia">Hoy</option>
+            <option value="mes">Este mes</option>
+          </select>
+          <input type="date" id="filtro-rep-fecha" onchange="renderReportes()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
+          <input type="month" id="filtro-rep-mes" onchange="renderReportes()" class="hidden border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
+        </div>
+        <!-- KPIs grandes -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6" id="stats-diario"></div>
+        <!-- Gráficas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <p class="text-sm font-semibold text-gray-700 mb-4">💳 Ventas por método de pago</p>
+            <div id="chart-pagos" class="space-y-3"></div>
+          </div>
+          <div class="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+            <p class="text-sm font-semibold text-gray-700 mb-4">🏆 Más vendidos</p>
+            <div id="top-platos-diario" class="space-y-3"></div>
+          </div>
+        </div>
+        <!-- Gráfica mensual (solo en mes) -->
+        <div id="wrap-chart-mensual" class="hidden bg-white border border-gray-100 rounded-2xl p-5 shadow-sm mb-6">
+          <p class="text-sm font-semibold text-gray-700 mb-4">📈 Ventas por día del mes</p>
+          <div class="flex items-end gap-1 h-40" id="chart-mensual"></div>
+          <div class="grid grid-cols-2 gap-4 mt-5">
+            <div><p class="text-xs font-medium text-gray-500 mb-2">Comparativo mes anterior</p><div id="comparativo-mes"></div></div>
+            <div><p class="text-xs font-medium text-gray-500 mb-2">Más vendidos del mes</p><div id="top-platos-mensual" class="space-y-2"></div></div>
+          </div>
+        </div>
+        <!-- Listado de transacciones -->
+        <div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+          <div class="px-5 py-3 border-b border-gray-100 flex justify-between items-center">
+            <p class="text-sm font-semibold text-gray-700">📋 Transacciones</p>
+            <span id="total-transacciones" class="text-xs text-gray-400"></span>
+          </div>
+          <div id="lista-transacciones" class="divide-y divide-gray-50 max-h-80 overflow-y-auto"></div>
         </div>
       </div>
-      <div id="tab-reporte-mensual" class="hidden">
-        <div class="grid grid-cols-4 gap-3 mb-6" id="stats-mensual"></div>
-        <div class="bg-white border border-gray-100 rounded-xl p-5 mb-4"><p class="text-xs font-medium text-gray-500 mb-4">Ventas por día</p><div class="flex items-end gap-1 h-32" id="chart-mensual"></div></div>
-        <div class="grid grid-cols-2 gap-4">
-          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-3">Comparativo mes anterior</p><div id="comparativo-mes"></div></div>
-          <div class="bg-white border border-gray-100 rounded-xl p-5"><p class="text-xs font-medium text-gray-500 mb-3">Más vendidos del mes</p><div id="top-platos-mensual" class="space-y-3"></div></div>
+
+      <!-- TAB HISTORIAL -->
+      <div id="tab-reporte-historial" class="hidden">
+        <div class="flex gap-2 mb-4">
+          <input type="date" id="filtro-hist-fecha" onchange="renderHistorial()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
         </div>
+        <div id="lista-historial" class="space-y-3"></div>
+      </div>
+
+      <!-- TAB COMPONENTES -->
+      <div id="tab-reporte-componentes" class="hidden">
+        <div class="flex gap-2 mb-4">
+          <input type="date" id="filtro-comp-fecha" onchange="renderComponentes()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm"/>
+        </div>
+        <div id="dashboard-componentes" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
     </div>
   </div>
@@ -231,7 +279,7 @@
 <nav id="mobile-nav"></nav>
 
 <!-- PRINT -->
-<div id="print-area" class="hidden"></div>
+<div id="print-area" style="display:none;position:fixed;left:0;top:0;width:80mm;background:white;z-index:9999;"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -308,7 +356,8 @@ function buildNav(rol){
   ).join('');
   document.getElementById('mobile-nav').innerHTML=items.map((m,i)=>
     `<div class="mob-item${i===0?' active':''}" onclick="showSectionMob('${m.id}',this)">
-      <span class="icon">${m.icon}</span><span>${m.label}</span></div>`).join('');
+      <span class="icon">${m.icon}</span><span>${m.label}</span></div>`).join('')+
+    `<div class="mob-item" onclick="doLogout()"><span class="icon">🚪</span><span>Salir</span></div>`;
   if(rol==='admin'){
     document.getElementById('plano-actions').innerHTML=`
       <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-3 py-2 rounded-lg">✏️ Editar plano</button>
@@ -351,6 +400,8 @@ function initListeners(){
   onSnapshot(query(collection(db,'gastos'),orderBy('fecha','desc')),snap=>{gastosData=snap.docs.map(d=>({id:d.id,...d.data()}));renderGastos();renderReportes();});
   onSnapshot(collection(db,'clientes'),snap=>{clientesData=snap.docs.map(d=>({id:d.id,...d.data()}));renderClientes();});
   onSnapshot(collection(db,'usuarios'),snap=>{renderUsuarios(snap.docs.map(d=>({id:d.id,...d.data()})));});
+  // Init filtros de reporte con fecha de hoy
+  setTimeout(initFiltrosReporte, 500);
 }
 
 // ── CONFIG ────────────────────────────────────────
@@ -803,11 +854,13 @@ window.cerrarModalTicket=()=>{
 window.ejecutarImpresion=()=>{
   const pa=document.getElementById('print-area');
   pa.innerHTML=ticketParaImprimir;
-  pa.classList.remove('hidden');
-  setTimeout(()=>{
-    window.print();
-    setTimeout(()=>{pa.classList.add('hidden');pa.innerHTML='';},1000);
-  },200);
+  pa.style.display='block';
+  pa.style.visibility='visible';
+  // Forzar reflow antes de imprimir
+  pa.offsetHeight;
+  window.print();
+  pa.style.display='none';
+  pa.innerHTML='';
 };
 
 // ════════════════════════════════════════════════════
@@ -972,6 +1025,7 @@ window.procesarCobroTotal=async()=>{
 window.procesarCobroSeparado=async()=>{
   const {peds,mesa}=cobroState;
   const personas=mesa.personas||2;
+  const recibosAImprimir=[];
   for(let i=1;i<=personas;i++){
     const checks=[...document.querySelectorAll(`.ped-pers[data-persona="${i}"]:checked`)];
     if(!checks.length)continue;
@@ -985,12 +1039,24 @@ window.procesarCobroSeparado=async()=>{
       else if(txt.includes('Daviplata'))metodo='daviplata';
       else if(txt.includes('crédito'))metodo='credito';
     }
-    for(const pid of pedIds) await updateDoc(doc(db,'pedidos',pid),{estado:'pagado',metodoPago:metodo,pagadoEn:serverTimestamp()});
+    for(const pid of pedIds) await updateDoc(doc(db,'pedidos',pid),{estado:'pagado',metodoPago:metodo,pagadoEn:serverTimestamp(),persona:i});
     const pedsPer=peds.filter(p=>pedIds.includes(p.id));
-    imprimirRecibo(pedsPer,metodo,subtotal,null,`Persona ${i}`);
+    recibosAImprimir.push({peds:pedsPer,metodo,subtotal,persona:i});
   }
   await updateDoc(doc(db,'mesas',mesa.id),{estado:'libre',personas:0});
   cerrarPanel();
+  // Imprimir recibos uno por uno con confirmación
+  for(const r of recibosAImprimir){
+    imprimirRecibo(r.peds,r.metodo,r.subtotal,null,`Persona ${r.persona} — Mesa ${mesa.numero}`);
+    if(recibosAImprimir.indexOf(r)<recibosAImprimir.length-1){
+      await new Promise(res=>{
+        const btn=document.createElement('button');
+        document.getElementById('ticket-preview').insertAdjacentHTML('afterend',
+          `<div id="next-ticket-btn" style="text-align:center;padding:10px"><button onclick="document.getElementById('next-ticket-btn').remove();arguments[0]()" style="background:#16a34a;color:white;padding:8px 20px;border:none;border-radius:8px;font-size:14px;cursor:pointer">Siguiente recibo →</button></div>`);
+        document.querySelector('#next-ticket-btn button').addEventListener('click',()=>res());
+      });
+    }
+  }
 };
 
 function imprimirRecibo(peds,metodo,total,cliente=null,titulo=''){
@@ -1027,6 +1093,119 @@ function imprimirRecibo(peds,metodo,total,cliente=null,titulo=''){
   ticketParaImprimir=html;
   document.getElementById('ticket-preview').innerHTML=html;
   document.getElementById('modal-ticket').style.display='flex';
+}
+
+// ════════════════════════════════════════════════════
+// HISTORIAL DE MESAS
+// ════════════════════════════════════════════════════
+function renderHistorial(){
+  const fechaVal=document.getElementById('filtro-hist-fecha')?.value||hoy();
+  const pedsPagados=pedidosData.filter(p=>p.estado==='pagado'&&sameDay(p.pagadoEn||p.creadoEn,fechaVal));
+  const mesasDict={};
+  pedsPagados.forEach(p=>{
+    const k=p.mesaNumero||'?';
+    if(!mesasDict[k]) mesasDict[k]={numero:k,peds:[],total:0,hora:null};
+    mesasDict[k].peds.push(p);
+    mesasDict[k].total+=p.total||0;
+    const t=(p.pagadoEn||p.creadoEn)?.toDate?(p.pagadoEn||p.creadoEn).toDate():null;
+    if(t&&(!mesasDict[k].hora||t>mesasDict[k].hora)) mesasDict[k].hora=t;
+  });
+  const mesas=Object.values(mesasDict).sort((a,b)=>b.hora-a.hora);
+  const el=document.getElementById('lista-historial');
+  if(!el)return;
+  if(!mesas.length){el.innerHTML='<div class="text-center py-8 text-sm text-gray-400">Sin mesas cerradas en esta fecha.</div>';return;}
+  el.innerHTML=mesas.map(m=>{
+    const hora=m.hora?m.hora.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'';
+    return `<div class="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-3 bg-gray-50 border-b border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-green-600 flex items-center justify-center text-white font-bold">${m.numero}</div>
+          <div><div class="font-semibold text-gray-800">Mesa ${m.numero}</div>
+            <div class="text-xs text-gray-400">Cerrada: ${hora}</div></div>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-lg font-bold text-green-700">${fCOP(m.total)}</div>
+          <button onclick="reimprimirMesa(${m.numero},'${fechaVal}')" class="text-xs border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg hover:bg-blue-50">🖨 Reimprimir</button>
+        </div>
+      </div>
+      <div class="px-5 py-3 space-y-2">
+        ${m.peds.map(p=>{
+          const nombre=p.tipo==='corriente'?'Almuerzo Corriente':(p.items||[]).map(i=>i.nombre).join(', ');
+          const icMet={efectivo:'💵',nequi:'📱',daviplata:'💳',credito:'🤝'};
+          return `<div class="flex justify-between items-center text-sm">
+            <span class="text-gray-700">${nombre}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-gray-400">${icMet[p.metodoPago]||''} ${p.metodoPago||''}</span>
+              <span class="font-medium text-green-700">${fCOP(p.total)}</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.reimprimirMesa=(mesaNum,fecha)=>{
+  const peds=pedidosData.filter(p=>p.mesaNumero===mesaNum&&p.estado==='pagado'&&sameDay(p.pagadoEn||p.creadoEn,fecha));
+  if(!peds.length){alert('No se encontraron pedidos para reimprimir.');return;}
+  const total=peds.reduce((s,p)=>s+(p.total||0),0);
+  imprimirRecibo(peds,peds[0]?.metodoPago||'efectivo',total,null,`Mesa ${mesaNum} — Copia`);
+};
+
+window.verReciboHistorial=(pedidoId)=>{
+  const p=pedidosData.find(x=>x.id===pedidoId);
+  if(!p)return;
+  imprimirRecibo([p],p.metodoPago||'efectivo',p.total||0,null,`Mesa ${p.mesaNumero}`);
+};
+
+// ════════════════════════════════════════════════════
+// COMPONENTES VENDIDOS
+// ════════════════════════════════════════════════════
+function renderComponentes(){
+  const fechaVal=document.getElementById('filtro-comp-fecha')?.value||hoy();
+  const pedsCorriente=pedidosData.filter(p=>p.tipo==='corriente'&&p.estado==='pagado'&&sameDay(p.pagadoEn||p.creadoEn,fechaVal));
+  const comp=corrienteData.componentes||{};
+  const el=document.getElementById('dashboard-componentes');
+  if(!el)return;
+  if(!Object.keys(comp).length){el.innerHTML='<p class="text-sm text-gray-400 col-span-2">Sin componentes configurados.</p>';return;}
+  // Contar selecciones
+  const conteos={};
+  Object.keys(comp).forEach(k=>{conteos[k]={};});
+  pedsCorriente.forEach(p=>{
+    Object.entries(p.selecciones||{}).forEach(([k,v])=>{
+      if(!conteos[k])conteos[k]={};
+      const opts=Array.isArray(v)?v:[v];
+      opts.forEach(o=>{conteos[k][o]=(conteos[k][o]||0)+1;});
+    });
+  });
+  const colores=['#16a34a','#22c55e','#4ade80','#86efac','#bbf7d0','#dcfce7'];
+  el.innerHTML=Object.entries(comp).map(([nombre,opciones])=>{
+    const data=conteos[nombre]||{};
+    const total=Object.values(data).reduce((s,v)=>s+v,0)||0;
+    const maxV=Math.max(...Object.values(data),1);
+    const opcionesActivas=opciones.filter(o=>o.activo);
+    return `<div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-5">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-bold text-gray-800 uppercase tracking-wide">${nombre}</h3>
+        <span class="text-xs bg-green-100 text-green-800 px-3 py-1 rounded-full font-semibold">${total} total</span>
+      </div>
+      <div class="space-y-3">
+        ${opcionesActivas.map((o,i)=>{
+          const cant=data[o.nombre]||0;
+          const pct=Math.round((cant/maxV)*100);
+          return `<div>
+            <div class="flex justify-between text-sm mb-1">
+              <span class="text-gray-700">${o.nombre}</span>
+              <span class="font-bold text-gray-800">${cant}</span>
+            </div>
+            <div class="h-4 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-4 rounded-full transition-all" style="width:${pct}%;background:${colores[i%colores.length]}"></div>
+            </div>
+          </div>`;
+        }).join('')||'<p class="text-xs text-gray-400">Sin opciones activas.</p>'}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ════════════════════════════════════════════════════
@@ -1238,77 +1417,177 @@ window.guardarGasto=async()=>{const d=document.getElementById('g-desc').value.tr
 // REPORTES
 // ════════════════════════════════════════════════════
 window.showReporteTab=(tab,el)=>{
-  document.querySelectorAll('.reporte-tab').forEach(t=>t.className='reporte-tab px-4 py-2 text-sm text-gray-500 border-b-2 border-transparent');
-  el.className='reporte-tab active-tab px-4 py-2 text-sm font-medium text-green-700 border-b-2 border-green-600';
-  document.getElementById('tab-reporte-diario').classList.toggle('hidden',tab!=='diario');
-  document.getElementById('tab-reporte-mensual').classList.toggle('hidden',tab==='diario');
+  document.querySelectorAll('.reporte-tab').forEach(t=>{t.className='reporte-tab flex-1 px-3 py-2 text-sm text-gray-500 rounded-lg';});
+  el.className='reporte-tab flex-1 px-3 py-2 text-sm font-medium rounded-lg bg-white text-green-700 shadow-sm';
+  ['ventas','historial','componentes'].forEach(t=>{
+    const el2=document.getElementById('tab-reporte-'+t);
+    if(el2) el2.classList.toggle('hidden',t!==tab);
+  });
+  if(tab==='historial'){initFiltrosReporte();renderHistorial();}
+  if(tab==='componentes'){initFiltrosReporte();renderComponentes();}
+  if(tab==='ventas') renderReportes();
 };
+
+// Inicializar fecha de hoy en filtros
+function initFiltrosReporte(){
+  const hoyStr=hoy();
+  const elF=document.getElementById('filtro-rep-fecha');
+  const elH=document.getElementById('filtro-hist-fecha');
+  const elC=document.getElementById('filtro-comp-fecha');
+  if(elF&&!elF.value) elF.value=hoyStr;
+  if(elH&&!elH.value) elH.value=hoyStr;
+  if(elC&&!elC.value) elC.value=hoyStr;
+  const elM=document.getElementById('filtro-rep-mes');
+  if(elM&&!elM.value) elM.value=new Date().toISOString().slice(0,7);
+}
+
+// Toggle filtro día/mes
+document.addEventListener('change',e=>{
+  if(e.target.id==='filtro-rep-tipo'){
+    const esDia=e.target.value==='dia';
+    document.getElementById('filtro-rep-fecha').classList.toggle('hidden',!esDia);
+    document.getElementById('filtro-rep-mes').classList.toggle('hidden',esDia);
+    document.getElementById('wrap-chart-mensual').classList.toggle('hidden',esDia);
+    renderReportes();
+  }
+});
+function getFiltroReporte(){
+  const tipo=document.getElementById('filtro-rep-tipo')?.value||'dia';
+  if(tipo==='mes'){
+    const mesVal=document.getElementById('filtro-rep-mes')?.value||new Date().toISOString().slice(0,7);
+    const [y,m]=mesVal.split('-').map(Number);
+    return {tipo:'mes',year:y,month:m-1};
+  } else {
+    const fechaVal=document.getElementById('filtro-rep-fecha')?.value||hoy();
+    return {tipo:'dia',fecha:fechaVal};
+  }
+}
+
+function pedsFiltrados(filtro){
+  if(filtro.tipo==='dia'){
+    return pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameDay(p.pagadoEn||p.creadoEn,filtro.fecha));
+  } else {
+    return pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameMon(p.pagadoEn||p.creadoEn,filtro.year,filtro.month));
+  }
+}
+
 function renderReportes(){
-  const h=hoy();const now=new Date();
-  const pedHoy=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameDay(p.pagadoEn||p.creadoEn,h));
-  const pedCredHoy=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago==='credito'&&sameDay(p.pagadoEn||p.creadoEn,h));
-  const pedMes=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameMon(p.pagadoEn||p.creadoEn,now.getFullYear(),now.getMonth()));
-  const gHoy=gastosData.filter(g=>!g.esIngreso&&sameDay(g.fecha,h));
-  const cobrosHoy=gastosData.filter(g=>g.esIngreso&&sameDay(g.fecha,h));
-  const gMes=gastosData.filter(g=>!g.esIngreso&&sameMon(g.fecha,now.getFullYear(),now.getMonth()));
-  const tHoy=pedHoy.reduce((s,p)=>s+(p.total||0),0);
-  const cobrosT=cobrosHoy.reduce((s,g)=>s+Math.abs(g.valor||0),0);
-  const gHoyT=gHoy.reduce((s,g)=>s+(g.valor||0),0);
-  const tMes=pedMes.reduce((s,p)=>s+(p.total||0),0);
-  const gMesT=gMes.reduce((s,g)=>s+(g.valor||0),0);
-  const mesAnt=now.getMonth()===0?11:now.getMonth()-1;
-  const yearAnt=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
-  const pedMesAnt=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameMon(p.pagadoEn||p.creadoEn,yearAnt,mesAnt));
-  const tMesAnt=pedMesAnt.reduce((s,p)=>s+(p.total||0),0);
-  const varMes=tMesAnt?Math.round(((tMes-tMesAnt)/tMesAnt)*100):0;
+  initFiltrosReporte();
+  const filtro=getFiltroReporte();
+  const peds=pedsFiltrados(filtro);
+  const pedCred=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago==='credito'&&
+    (filtro.tipo==='dia'?sameDay(p.pagadoEn||p.creadoEn,filtro.fecha):sameMon(p.pagadoEn||p.creadoEn,filtro.year,filtro.month)));
+  const gFilt=gastosData.filter(g=>!g.esIngreso&&
+    (filtro.tipo==='dia'?sameDay(g.fecha,filtro.fecha):sameMon(g.fecha,filtro.year,filtro.month)));
+  const cobrosFilt=gastosData.filter(g=>g.esIngreso&&
+    (filtro.tipo==='dia'?sameDay(g.fecha,filtro.fecha):sameMon(g.fecha,filtro.year,filtro.month)));
+  const tVentas=peds.reduce((s,p)=>s+(p.total||0),0);
+  const tCred=pedCred.reduce((s,p)=>s+(p.total||0),0);
+  const tCobros=cobrosFilt.reduce((s,g)=>s+Math.abs(g.valor||0),0);
+  const tGastos=gFilt.reduce((s,g)=>s+(g.valor||0),0);
+  const utilidad=tVentas+tCobros-tGastos;
+
+  // KPIs grandes
   const sd=document.getElementById('stats-diario');
-  if(sd)sd.innerHTML=[
-    {label:'Ventas cobradas',value:fCOP(tHoy)},
-    {label:'Ventas a crédito',value:fCOP(pedCredHoy.reduce((s,p)=>s+(p.total||0),0))},
-    {label:'Cobros de crédito',value:fCOP(cobrosT)},
-    {label:'Utilidad del día',value:fCOP(tHoy+cobrosT-gHoyT),color:true}
-  ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold ${s.color?(tHoy+cobrosT-gHoyT>=0?'text-green-700':'text-red-600'):'text-gray-900'} mt-1">${s.value}</div></div>`).join('');
-  const metodos={efectivo:0,nequi:0,daviplata:0};
-  pedHoy.forEach(p=>{if(metodos[p.metodoPago]!==undefined)metodos[p.metodoPago]+=p.total||0;});
-  const maxM=Math.max(...Object.values(metodos),1);
-  const cp=document.getElementById('chart-pagos');
-  if(cp)cp.innerHTML=Object.entries(metodos).map(([m,v])=>`
-    <div class="flex items-center gap-3"><div class="text-xs text-gray-600 w-16 capitalize">${m}</div>
-      <div class="flex-1 h-2 bg-gray-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:${Math.round((v/maxM)*100)}%"></div></div>
-      <div class="text-xs text-gray-700 w-20 text-right">${fCOP(v)}</div></div>`).join('');
-  const cnt={};pedHoy.forEach(p=>{if(p.tipo==='corriente')cnt['Almuerzo Corriente']=(cnt['Almuerzo Corriente']||0)+1;else(p.items||[]).forEach(i=>{cnt[i.nombre]=(cnt[i.nombre]||0)+i.cantidad;});});
-  const topH=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);const maxH=Math.max(...topH.map(t=>t[1]),1);
-  const tp=document.getElementById('top-platos-diario');
-  if(tp)tp.innerHTML=topH.map(([n,v])=>`<div class="flex items-center gap-3"><div class="text-xs flex-1 truncate">${n}</div>
-    <div class="w-20 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxH)*100)}%"></div></div>
-    <div class="text-xs text-gray-500 w-4 text-right">${v}</div></div>`).join('')||'<p class="text-xs text-gray-400">Sin ventas.</p>';
-  const sm=document.getElementById('stats-mensual');
-  if(sm)sm.innerHTML=[
-    {label:'Ventas cobradas',value:fCOP(tMes)},
-    {label:'Gastos del mes',value:fCOP(gMesT)},
-    {label:'Utilidad del mes',value:fCOP(tMes-gMesT),color:true},
-    {label:'vs mes anterior',value:`${varMes>0?'+':''}${varMes}%`,color2:true}
-  ].map(s=>`<div class="stat-card"><div class="text-xs text-gray-500">${s.label}</div><div class="text-xl font-semibold ${s.color?(tMes-gMesT>=0?'text-green-700':'text-red-600'):s.color2?(varMes>=0?'text-green-700':'text-red-600'):'text-gray-900'} mt-1">${s.value}</div></div>`).join('');
-  const diasMes=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
-  const vd=Array(diasMes).fill(0);
-  pedMes.forEach(p=>{try{const dt=(p.pagadoEn||p.creadoEn)?.toDate?(p.pagadoEn||p.creadoEn).toDate():new Date();const dia=dt.getDate()-1;if(dia>=0&&dia<diasMes)vd[dia]+=p.total||0;}catch(e){}});
-  const maxD=Math.max(...vd,1);
-  const cm=document.getElementById('chart-mensual');
-  if(cm)cm.innerHTML=vd.map((v,i)=>`<div class="flex flex-col items-center flex-1" title="${fCOP(v)}">
-    <div class="w-full bg-green-500 rounded-t" style="height:${Math.max(2,Math.round((v/maxD)*100))}px"></div>
-    ${(i+1)%5===0?`<div class="text-xs text-gray-400">${i+1}</div>`:'<div class="h-3"></div>'}
+  if(sd) sd.innerHTML=[
+    {icon:'💰',label:'Ventas cobradas',value:fCOP(tVentas),color:'text-green-700',bg:'bg-green-50',border:'border-green-200'},
+    {icon:'🤝',label:'Ventas a crédito',value:fCOP(tCred),color:'text-amber-700',bg:'bg-amber-50',border:'border-amber-200'},
+    {icon:'💵',label:'Cobros de crédito',value:fCOP(tCobros),color:'text-blue-700',bg:'bg-blue-50',border:'border-blue-200'},
+    {icon:'📈',label:'Utilidad',value:fCOP(utilidad),color:utilidad>=0?'text-green-700':'text-red-600',bg:utilidad>=0?'bg-green-50':'bg-red-50',border:utilidad>=0?'border-green-200':'border-red-200'},
+  ].map(s=>`<div class="rounded-2xl border p-4 ${s.bg} ${s.border}">
+    <div class="text-2xl mb-1">${s.icon}</div>
+    <div class="text-xs text-gray-500 mb-1">${s.label}</div>
+    <div class="text-2xl font-bold ${s.color}">${s.value}</div>
+    <div class="text-xs text-gray-400 mt-1">${peds.length} transacciones</div>
   </div>`).join('');
-  const comp=document.getElementById('comparativo-mes');
-  if(comp)comp.innerHTML=`<div class="space-y-2">
-    <div class="flex justify-between text-sm"><span class="text-gray-600">Este mes</span><span class="font-medium">${fCOP(tMes)}</span></div>
-    <div class="flex justify-between text-sm"><span class="text-gray-600">Mes anterior</span><span class="font-medium">${fCOP(tMesAnt)}</span></div>
-    <div class="flex justify-between text-sm border-t pt-2"><span class="text-gray-600">Variación</span><span class="font-semibold ${varMes>=0?'text-green-700':'text-red-600'}">${varMes>0?'+':''}${varMes}%</span></div></div>`;
-  const cntM={};pedMes.forEach(p=>{if(p.tipo==='corriente')cntM['Almuerzo Corriente']=(cntM['Almuerzo Corriente']||0)+1;else(p.items||[]).forEach(i=>{cntM[i.nombre]=(cntM[i.nombre]||0)+i.cantidad;});});
-  const topM=Object.entries(cntM).sort((a,b)=>b[1]-a[1]).slice(0,5);const maxMp=Math.max(...topM.map(t=>t[1]),1);
-  const tpm=document.getElementById('top-platos-mensual');
-  if(tpm)tpm.innerHTML=topM.map(([n,v])=>`<div class="flex items-center gap-3"><div class="text-xs flex-1 truncate">${n}</div>
-    <div class="w-20 h-1.5 bg-gray-100 rounded-full"><div class="h-1.5 bg-green-500 rounded-full" style="width:${Math.round((v/maxMp)*100)}%"></div></div>
-    <div class="text-xs text-gray-500 w-4 text-right">${v}</div></div>`).join('')||'<p class="text-xs text-gray-400">Sin ventas.</p>';
+
+  // Métodos de pago
+  const metodos={efectivo:0,nequi:0,daviplata:0};
+  peds.forEach(p=>{if(metodos[p.metodoPago]!==undefined)metodos[p.metodoPago]+=p.total||0;});
+  const maxM=Math.max(...Object.values(metodos),1);
+  const iconMet={efectivo:'💵',nequi:'📱',daviplata:'💳'};
+  const cp=document.getElementById('chart-pagos');
+  if(cp) cp.innerHTML=Object.entries(metodos).map(([m,v])=>`
+    <div class="flex items-center gap-3">
+      <div class="text-sm w-24">${iconMet[m]||''} ${m.charAt(0).toUpperCase()+m.slice(1)}</div>
+      <div class="flex-1 h-4 bg-gray-100 rounded-full overflow-hidden">
+        <div class="h-4 bg-green-500 rounded-full transition-all" style="width:${Math.round((v/maxM)*100)}%"></div>
+      </div>
+      <div class="text-sm font-medium text-gray-700 w-24 text-right">${fCOP(v)}</div>
+    </div>`).join('');
+
+  // Top platos
+  const cnt={};
+  peds.forEach(p=>{if(p.tipo==='corriente')cnt['Almuerzo Corriente']=(cnt['Almuerzo Corriente']||0)+1;else(p.items||[]).forEach(i=>{cnt[i.nombre]=(cnt[i.nombre]||0)+i.cantidad;});});
+  const topH=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,6);const maxH=Math.max(...topH.map(t=>t[1]),1);
+  const tp=document.getElementById('top-platos-diario');
+  if(tp) tp.innerHTML=topH.map(([n,v],i)=>`
+    <div class="flex items-center gap-3">
+      <div class="text-xs font-bold text-gray-400 w-4">${i+1}</div>
+      <div class="text-sm flex-1 truncate">${n}</div>
+      <div class="w-24 h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div class="h-3 rounded-full" style="width:${Math.round((v/maxH)*100)}%;background:${['#16a34a','#22c55e','#4ade80','#86efac','#bbf7d0','#dcfce7'][i]||'#16a34a'}"></div>
+      </div>
+      <div class="text-sm font-bold text-gray-700 w-6 text-right">${v}</div>
+    </div>`).join('')||'<p class="text-sm text-gray-400">Sin ventas.</p>';
+
+  // Gráfica y stats mensuales
+  if(filtro.tipo==='mes'){
+    document.getElementById('wrap-chart-mensual')?.classList.remove('hidden');
+    const diasMes=new Date(filtro.year,filtro.month+1,0).getDate();
+    const vd=Array(diasMes).fill(0);
+    peds.forEach(p=>{try{const dt=(p.pagadoEn||p.creadoEn)?.toDate?(p.pagadoEn||p.creadoEn).toDate():new Date();const dia=dt.getDate()-1;if(dia>=0&&dia<diasMes)vd[dia]+=p.total||0;}catch(e){}});
+    const maxD=Math.max(...vd,1);
+    const cm=document.getElementById('chart-mensual');
+    if(cm) cm.innerHTML=vd.map((v,i)=>`
+      <div class="flex flex-col items-center flex-1 group" title="Día ${i+1}: ${fCOP(v)}">
+        <div class="w-full rounded-t transition-all" style="height:${Math.max(2,Math.round((v/maxD)*100))}px;background:${v>0?'#16a34a':'#e5e7eb'}"></div>
+        ${(i+1)%5===0||i===0?`<div class="text-xs text-gray-400 mt-1">${i+1}</div>`:'<div class="h-4"></div>'}
+      </div>`).join('');
+    // Mes anterior
+    const mesAnt=filtro.month===0?11:filtro.month-1;
+    const yearAnt=filtro.month===0?filtro.year-1:filtro.year;
+    const pedMesAnt=pedidosData.filter(p=>p.estado==='pagado'&&p.metodoPago!=='credito'&&sameMon(p.pagadoEn||p.creadoEn,yearAnt,mesAnt));
+    const tMesAnt=pedMesAnt.reduce((s,p)=>s+(p.total||0),0);
+    const varMes=tMesAnt?Math.round(((tVentas-tMesAnt)/tMesAnt)*100):0;
+    const comp=document.getElementById('comparativo-mes');
+    if(comp) comp.innerHTML=`<div class="space-y-3">
+      <div class="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+        <span class="text-sm text-gray-600">Este mes</span><span class="text-base font-bold text-green-700">${fCOP(tVentas)}</span></div>
+      <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+        <span class="text-sm text-gray-600">Mes anterior</span><span class="text-base font-bold text-gray-700">${fCOP(tMesAnt)}</span></div>
+      <div class="flex justify-between items-center p-3 ${varMes>=0?'bg-green-50':'bg-red-50'} rounded-xl border ${varMes>=0?'border-green-200':'border-red-200'}">
+        <span class="text-sm font-medium">Variación</span>
+        <span class="text-lg font-bold ${varMes>=0?'text-green-700':'text-red-600'}">${varMes>0?'+':''}${varMes}%</span></div></div>`;
+    // Top mes
+    const cntM={};peds.forEach(p=>{if(p.tipo==='corriente')cntM['Almuerzo Corriente']=(cntM['Almuerzo Corriente']||0)+1;else(p.items||[]).forEach(i=>{cntM[i.nombre]=(cntM[i.nombre]||0)+i.cantidad;});});
+    const topM=Object.entries(cntM).sort((a,b)=>b[1]-a[1]).slice(0,5);const maxMp=Math.max(...topM.map(t=>t[1]),1);
+    const tpm=document.getElementById('top-platos-mensual');
+    if(tpm) tpm.innerHTML=topM.map(([n,v])=>`<div class="flex items-center gap-2 text-sm">
+      <span class="flex-1 truncate text-gray-700">${n}</span>
+      <div class="w-16 h-2 bg-gray-100 rounded-full"><div class="h-2 bg-green-500 rounded-full" style="width:${Math.round((v/maxMp)*100)}%"></div></div>
+      <span class="font-bold text-gray-700 w-5 text-right">${v}</span></div>`).join('')||'<p class="text-xs text-gray-400">Sin datos.</p>';
+  } else {
+    document.getElementById('wrap-chart-mensual')?.classList.add('hidden');
+  }
+
+  // Listado de transacciones
+  const lt=document.getElementById('lista-transacciones');
+  const tt=document.getElementById('total-transacciones');
+  if(tt) tt.textContent=`${peds.length} registros`;
+  if(lt) lt.innerHTML=peds.length?peds.map(p=>{
+    const hora=(p.pagadoEn||p.creadoEn)?.toDate?(p.pagadoEn||p.creadoEn).toDate().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}):'';
+    const icMet={efectivo:'💵',nequi:'📱',daviplata:'💳',credito:'🤝'};
+    return `<div class="flex items-center gap-3 px-5 py-3 hover:bg-gray-50 cursor-pointer" onclick="verReciboHistorial('${p.id}')">
+      <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center text-sm font-bold text-green-700">${p.mesaNumero||'?'}</div>
+      <div class="flex-1 min-w-0">
+        <div class="text-sm font-medium">Mesa ${p.mesaNumero||'?'}</div>
+        <div class="text-xs text-gray-400">${hora} · ${icMet[p.metodoPago]||''} ${p.metodoPago||''}</div>
+      </div>
+      <div class="text-sm font-bold text-green-700">${fCOP(p.total)}</div>
+      <button onclick="event.stopPropagation();verReciboHistorial('${p.id}')" class="text-xs border border-gray-200 px-2 py-1 rounded-lg text-gray-500 hover:bg-gray-100">🖨</button>
+    </div>`;
+  }).join(''):'<div class="px-5 py-8 text-center text-sm text-gray-400">Sin transacciones en este período.</div>';
 }
 
 // ════════════════════════════════════════════════════
