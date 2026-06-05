@@ -15,6 +15,7 @@
     /* Plano elegante */
     #plano-salon{
       position:relative;
+      max-width:1100px;
       background: 
         linear-gradient(135deg, rgba(0,0,0,0.15) 25%, transparent 25%) -10px 0,
         linear-gradient(225deg, rgba(0,0,0,0.12) 25%, transparent 25%) -10px 0,
@@ -73,8 +74,41 @@
     #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;align-items:center;justify-content:center;}
     #modal-overlay.show{display:flex;}
     #modal-box{background:white;border-radius:20px;padding:24px;width:100%;max-width:500px;margin:16px;max-height:92vh;overflow-y:auto;}
-    #panel-lateral{position:fixed;right:-420px;top:0;height:100vh;width:400px;background:white;box-shadow:-4px 0 20px rgba(0,0,0,0.1);z-index:40;transition:right 0.3s;overflow-y:auto;}
-    #panel-lateral.open{right:0;}
+    /* Panel lateral → Modal centrado en desktop, bottom sheet en móvil */
+    #panel-lateral{
+      position:fixed;
+      /* Desktop: centrado */
+      top:50%;left:50%;
+      transform:translate(-50%,-50%) scale(0.95);
+      width:560px;max-width:95vw;
+      max-height:88vh;
+      background:white;
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.3);
+      z-index:45;
+      transition:transform 0.25s ease, opacity 0.25s ease;
+      overflow-y:auto;
+      opacity:0;
+      pointer-events:none;
+    }
+    #panel-lateral.open{
+      transform:translate(-50%,-50%) scale(1);
+      opacity:1;
+      pointer-events:all;
+    }
+    @media(max-width:768px){
+      #panel-lateral{
+        top:auto;left:0;right:0;bottom:0;
+        transform:translateY(100%);
+        width:100%;max-width:100%;
+        border-radius:20px 20px 0 0;
+        max-height:85vh;
+      }
+      #panel-lateral.open{
+        transform:translateY(0);
+        opacity:1;
+      }
+    }
     @media print{body *{visibility:hidden;} #print-area,#print-area *{visibility:visible;} #print-area{position:fixed;left:0;top:0;width:80mm;}}
     /* Ticket de impresión estilo POS */
     .tp{font-family:"Courier New",monospace;font-size:12px;background:#fff;padding:18px 14px;border:1px dashed #bbb;border-radius:8px;line-height:1.9;color:#000;max-width:300px;margin:0 auto;}
@@ -91,7 +125,7 @@
       #main-content{margin-left:0!important;padding-bottom:75px;}
       #mobile-nav{display:flex!important;}
       #plano-salon{height:calc(100vh - 155px);min-height:260px;}
-      #panel-lateral{width:100%;right:-100%;}
+      /* panel-lateral manejado en CSS principal */
       #modal-box{margin:8px;padding:16px;border-radius:16px;}
     }
   </style>
@@ -314,15 +348,19 @@
   </div>
 </div>
 
-<!-- PANEL LATERAL -->
+<!-- PANEL / MODAL -->
 <div id="panel-lateral">
-  <div class="p-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10">
-    <h2 class="font-semibold text-gray-900" id="panel-titulo">Mesa</h2>
-    <button onclick="cerrarPanel()" class="text-gray-400 hover:text-gray-700 text-xl">✕</button>
+  <!-- Drag handle solo en móvil -->
+  <div class="flex justify-center pt-3 pb-1 md:hidden">
+    <div style="width:40px;height:4px;background:#e5e7eb;border-radius:2px;"></div>
   </div>
-  <div id="panel-contenido" class="p-4"></div>
+  <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between sticky top-0 bg-white z-10" style="border-radius:20px 20px 0 0;">
+    <h2 class="font-semibold text-gray-900 text-base" id="panel-titulo">Mesa</h2>
+    <button onclick="cerrarPanel()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-lg transition-colors">✕</button>
+  </div>
+  <div id="panel-contenido" class="p-5 pb-8"></div>
 </div>
-<div id="panel-overlay" class="hidden fixed inset-0 z-30" onclick="cerrarPanel()"></div>
+<div id="panel-overlay" class="hidden fixed inset-0 z-30" style="background:rgba(0,0,0,0.45);backdrop-filter:blur(2px);" onclick="cerrarPanel()"></div>
 
 <!-- MODAL -->
 <div id="modal-overlay"><div id="modal-box"></div></div>
@@ -416,6 +454,7 @@ function buildNav(rol){
     document.getElementById('plano-actions').innerHTML=`
       <button id="btn-modo-edicion" onclick="toggleModoEdicion()" class="text-sm border border-gray-200 px-3 py-2 rounded-lg">✏️ Editar plano</button>
       <button id="btn-guardar-pos" onclick="guardarPosiciones()" class="hidden text-sm bg-green-600 text-white px-3 py-2 rounded-lg">💾 Guardar</button>
+      <button id="btn-redistribuir" onclick="redistribuirMesas()" class="hidden text-sm border border-blue-300 text-blue-600 px-3 py-2 rounded-lg">⊞ Redistribuir</button>
       <button onclick="abrirModalCrearMesa()" class="text-sm bg-green-600 text-white px-3 py-2 rounded-lg">+ Mesa</button>`;
   }
 }
@@ -629,16 +668,42 @@ window.toggleModoEdicion=()=>{
   modoEdicion=!modoEdicion;
   document.getElementById('btn-modo-edicion').textContent=modoEdicion?'✕ Cancelar':'✏️ Editar plano';
   document.getElementById('btn-guardar-pos').classList.toggle('hidden',!modoEdicion);
+  document.getElementById('btn-redistribuir')?.classList.toggle('hidden',!modoEdicion);
   document.getElementById('modo-edicion-info').classList.toggle('hidden',!modoEdicion);
   renderPlano();
 };
+window.redistribuirMesas=async()=>{
+  if(!confirm('¿Redistribuir automáticamente las mesas en el plano?')) return;
+  const salon=document.getElementById('plano-salon');
+  const W=700; // base width
+  const H=500; // base height
+  const total=mesasData.length;
+  if(!total) return;
+
+  // Calcular grid óptimo
+  const cols=Math.ceil(Math.sqrt(total*1.6));
+  const rows=Math.ceil(total/cols);
+  const padX=Math.round(W/(cols+1));
+  const padY=Math.round(H/(rows+1));
+
+  const sorted=[...mesasData].sort((a,b)=>a.numero-b.numero);
+  const promises=sorted.map((mesa,i)=>{
+    const col=i%cols;
+    const row=Math.floor(i/cols);
+    const x=padX*(col+1)-36; // centrar mesa (sz=72/2=36)
+    const y=padY*(row+1)-36;
+    return updateDoc(doc(db,'mesas',mesa.id),{x,y});
+  });
+  await Promise.all(promises);
+  renderPlano();
+};
+
 window.guardarPosiciones=async()=>{
   const salon=document.getElementById('plano-salon');
   const {sx,sy}=getEscala();
-  const BASE_W=600,BASE_H=500;
   await Promise.all(mesasData.map(m=>{
     const el=salon.querySelector(`#mp-${m.id}`); if(!el)return;
-    // Guardar posición en coordenadas base (600x500)
+    // Guardar en coordenadas base (700x500)
     const x=Math.round((parseInt(el.style.left)||0)/(sx||1));
     const y=Math.round((parseInt(el.style.top)||0)/(sy||1));
     return updateDoc(doc(db,'mesas',m.id),{x,y});
@@ -646,6 +711,7 @@ window.guardarPosiciones=async()=>{
   modoEdicion=false;
   document.getElementById('btn-modo-edicion').textContent='✏️ Editar plano';
   document.getElementById('btn-guardar-pos').classList.add('hidden');
+  document.getElementById('btn-redistribuir')?.classList.add('hidden');
   document.getElementById('modo-edicion-info').classList.add('hidden');
   renderPlano();
 };
@@ -974,10 +1040,8 @@ window.confirmarPedido=async(mesaId,mesaNum,editId='')=>{
     }));
     await Promise.all(promises);
     closeModal();
-    // Imprimir ticket con todos los pedidos de la mesa
-    const pedsMesa=pedidosData.filter(p=>p.mesaId===mesaId&&!['pagado','cancelado'].includes(p.estado));
-    const nuevosPeds=[...pedsMesa,...pedidoFlow.pedidos.map((p,i)=>({...p,id:`nuevo-${i}`}))];
-    imprimirComandaMesa(mesaNum,nuevosPeds);
+    // Imprimir SOLO los nuevos pedidos recién creados (no los ya existentes)
+    imprimirComandaMesa(mesaNum, pedidoFlow.pedidos);
   }
   // Reabrir panel de mesa
   setTimeout(()=>{const m=mesasData.find(x=>x.id===mesaId);if(m)abrirPanelMesa(m);},600);
@@ -1820,8 +1884,16 @@ window.crearUsuario=async()=>{
 };
 
 // ── Panel y Modal ─────────────────────────────────
-function abrirPanel(){document.getElementById('panel-lateral').classList.add('open');document.getElementById('panel-overlay').classList.remove('hidden');}
-window.cerrarPanel=()=>{document.getElementById('panel-lateral').classList.remove('open');document.getElementById('panel-overlay').classList.add('hidden');};
+function abrirPanel(){
+  document.getElementById('panel-lateral').classList.add('open');
+  document.getElementById('panel-overlay').classList.remove('hidden');
+  document.body.style.overflow='hidden';
+}
+window.cerrarPanel=()=>{
+  document.getElementById('panel-lateral').classList.remove('open');
+  document.getElementById('panel-overlay').classList.add('hidden');
+  document.body.style.overflow='';
+};
 window.showModal=html=>{document.getElementById('modal-box').innerHTML=html;document.getElementById('modal-overlay').classList.add('show');};
 window.closeModal=()=>{document.getElementById('modal-overlay').classList.remove('show');};
 document.getElementById('modal-overlay').addEventListener('click',e=>{if(e.target===document.getElementById('modal-overlay'))closeModal();});
